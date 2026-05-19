@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compliance Dashboard</title>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: #161b22;
+      --panel-2: #1f2633;
+      --panel-3: #0f141c;
+      --line: #303846;
+      --line-strong: #465064;
+      --ink: #eef2f7;
+      --muted: #aab4c5;
+      --soft: #d7deea;
+      --accent: #4cc9a7;
+      --accent-2: #8ab4ff;
+      --green: #2fbf71;
+      --red: #ef5b5b;
+      --amber: #e5a82e;
+      --gray: #8d98aa;
+      --shadow: rgba(0, 0, 0, 0.35);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(76, 201, 167, 0.14), transparent 32rem),
+        linear-gradient(180deg, #0d1117 0%, #10141d 100%);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.45;
+    }
+    header {
+      padding: 26px 34px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(13, 17, 23, 0.92);
+    }
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      letter-spacing: 0;
+    }
+    header p {
+      margin: 0;
+      color: var(--muted);
+      max-width: 900px;
+    }
+    main {
+      width: min(1480px, calc(100vw - 28px));
+      margin: 18px auto 40px;
+    }
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .metric {
+      background: linear-gradient(180deg, #1a202c, #141922);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 10px 24px var(--shadow);
+    }
+    .metric strong {
+      display: block;
+      font-size: 30px;
+      margin-bottom: 3px;
+    }
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+    section {
+      background: rgba(22, 27, 34, 0.96);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 12px 28px var(--shadow);
+    }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    section h2 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+    .section-note {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      margin-bottom: 14px;
+      background: var(--panel-3);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .control-label {
+      color: var(--soft);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 32px;
+      padding: 5px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel-2);
+      color: var(--ink);
+      font-size: 13px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .chip input { margin: 0; accent-color: var(--accent); }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      flex: 0 0 auto;
+    }
+    select, input[type="search"], button {
+      min-height: 34px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: #0f141c;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+      padding: 6px 10px;
+    }
+    input[type="search"]::placeholder { color: #7f8a9d; }
+    button {
+      background: linear-gradient(180deg, #2d6cdf, #1c4aa8);
+      border-color: #2d6cdf;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .matrix-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+      gap: 14px;
+      align-items: start;
+    }
+    .matrix-wrap {
+      overflow: auto;
+      max-height: 720px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #0f141c;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+      text-align: left;
+      vertical-align: middle;
+    }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #202838;
+      color: var(--soft);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+    .matrix-table td:first-child,
+    .matrix-table th:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      background: #131923;
+      min-width: 86px;
+    }
+    .matrix-table th:first-child { background: #202838; }
+    .trade-id {
+      color: var(--ink);
+      font-weight: 700;
+    }
+    .asset {
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .status-cell {
+      width: 100%;
+      min-width: 150px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 9px 10px;
+      text-align: left;
+    }
+    .status-cell small {
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 0.9;
+      white-space: nowrap;
+    }
+    .status-COMPLIANT { background: linear-gradient(135deg, #178f52, #2fbf71); }
+    .status-NONCOMPLIANT { background: linear-gradient(135deg, #b9363d, #ef5b5b); }
+    .status-CONDITIONAL { background: linear-gradient(135deg, #b77610, #e5a82e); color: #191100; }
+    .status-NOT_APPLICABLE { background: linear-gradient(135deg, #667386, #8d98aa); }
+    .detail-panel {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #0f141c;
+      padding: 14px;
+      min-height: 260px;
+      position: sticky;
+      top: 12px;
+    }
+    .detail-panel h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+    .detail-panel p {
+      margin: 8px 0;
+      color: var(--soft);
+    }
+    .detail-panel ul {
+      margin: 8px 0 12px 18px;
+      padding: 0;
+      color: var(--soft);
+    }
+    .detail-panel li { margin-bottom: 5px; }
+    .muted { color: var(--muted); }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 5px 9px;
+      white-space: nowrap;
+    }
+    .status-pill.status-CONDITIONAL { color: #191100; }
+    .status-pill.status-FOUND { background: linear-gradient(135deg, #178f52, #2fbf71); }
+    .status-pill.status-INVALID_ATTRIBUTES { background: linear-gradient(135deg, #b9363d, #ef5b5b); }
+    .status-pill.status-NOT_FOUND { background: linear-gradient(135deg, #667386, #8d98aa); }
+    .status-pill.status-NO_PRODUCT_DEFINITION { background: linear-gradient(135deg, #667386, #8d98aa); }
+    .status-pill.status-FOUND { background: linear-gradient(135deg, #178f52, #2fbf71); }
+    .status-pill.status-INVALID_ATTRIBUTES { background: linear-gradient(135deg, #b9363d, #ef5b5b); }
+    .chart {
+      width: 100%;
+      min-height: 460px;
+    }
+    .table-scroll {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+    .frontier-table th,
+    .frontier-table td {
+      min-width: 110px;
+    }
+    .frontier-note-row td {
+      background: #131923;
+      color: var(--soft);
+      font-size: 13px;
+      line-height: 1.55;
+      padding: 12px 14px;
+      border-top: 0;
+      border-bottom: 2px solid var(--line-strong);
+      min-width: 0;
+    }
+    .frontier-note-row td strong {
+      color: var(--accent);
+    }
+    .note {
+      color: var(--soft);
+      min-width: 320px;
+    }
+    .interpretation {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .interpretation p {
+      margin: 0;
+      padding: 15px;
+      color: var(--soft);
+      background: #0f141c;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: 10px;
+    }
+    .hidden { display: none; }
+    footer {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 14px;
+      text-align: right;
+    }
+    @media (max-width: 980px) {
+      header { padding: 22px 18px; }
+      .summary, .interpretation, .matrix-layout { grid-template-columns: 1fr; }
+      .detail-panel { position: static; }
+      section { padding: 14px; }
+      .matrix-wrap { max-height: 620px; }
+      .status-cell { min-width: 132px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>OTC Derivatives Compliance Dashboard</h1>
+    <p>A read-only view of <code>output/compliance_report.json</code>: every trade across CFTC and EMIR Refit, the most common errors, asset-class compliance rates, and the prediction-market classification gap. Click any status cell for the full per-trade story.</p>
+  </header>
+  <main>
+    <div class="summary" id="summaryMetrics"></div>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>Portfolio Compliance Heatmap</h2>
+          <p class="section-note">Rows are trade IDs, columns are regimes, and each status cell is clickable. Colours: green = COMPLIANT, red = NONCOMPLIANT, amber = CONDITIONAL, grey = NOT_APPLICABLE.</p>
+        </div>
+      </div>
+      <div class="controls" id="matrixControls"></div>
+      <div class="legend" id="statusLegend"></div>
+      <div class="matrix-layout">
+        <div class="matrix-wrap">
+          <table class="matrix-table" id="matrixTable"></table>
+        </div>
+        <aside id="selectedTradeDetails" class="detail-panel muted">
+          Select any status cell to inspect errors, warnings, and compliance notes for that trade-regime pair.
+        </aside>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>Error Frequency</h2>
+          <p class="section-note">Horizontal bar chart of the most commonly failing fields across all trades.</p>
+        </div>
+      </div>
+      <div id="errorChart" class="chart"></div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>Asset Class Breakdown</h2>
+          <p class="section-note">Compliance rate grouped by asset class and regime, using reportable trades as the denominator.</p>
+        </div>
+      </div>
+      <div id="assetChart" class="chart"></div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <h2>Classification Frontier: T026-T028</h2>
+          <p class="section-note">Jurisdictional asymmetry for the prediction/event contracts, including compliance note text.</p>
+        </div>
+      </div>
+      <div id="frontierTable"></div>
+    </section>
+
+    <section>
+      <h2>Interpretation</h2>
+      <div class="interpretation" id="interpretation"></div>
+    </section>
+
+    <footer>Regenerated by dashboard.py</footer>
+  </main>
+  <script>
+    let DATA = {"input_file": "C:\\Users\\jinya\\OneDrive\\Desktop\\Submission\\submission_member1_member2_updated 2\\submission\\trades.json", "summary": {"total_trades": 33, "provided_trades": 28, "additional_trades": 5, "success": 30, "partial": 3, "failed": 0, "novel_instruments": 5, "upi": {"FOUND": 23, "INVALID_ATTRIBUTES": 5, "NO_PRODUCT_DEFINITION": 5}, "compliance": {"CFTC": {"NONCOMPLIANT": 25, "COMPLIANT": 3, "CONDITIONAL": 3, "NOT_APPLICABLE": 2}, "EMIR": {"NONCOMPLIANT": 27, "NOT_APPLICABLE": 5, "COMPLIANT": 1}}}, "regimes": ["CFTC", "EMIR"], "trade_ids": ["T001", "T002", "T003", "T004", "T005", "T006", "T007", "T008", "T009", "T010", "T011", "T012", "T013", "T014", "T015", "T016", "T017", "T018", "T019", "T020", "T021", "T022", "T023", "T024", "T025", "T026", "T027", "T028", "T029", "T030", "T031", "T032", "T033"], "trade_meta": [{"trade_id": "T001", "asset_class": "Rates", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T002", "asset_class": "Credit", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T003", "asset_class": "FX", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T004", "asset_class": "Equity", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T005", "asset_class": "Rates", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T006", "asset_class": "Rates", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T007", "asset_class": "Commodities", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T008", "asset_class": "Rates", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T009", "asset_class": "FX", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T010", "asset_class": "Credit", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T011", "asset_class": "Rates", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T012", "asset_class": "Equity", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T013", "asset_class": "Rates", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T014", "asset_class": "FX", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T015", "asset_class": "Rates", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T016", "asset_class": "Equity", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T017", "asset_class": "Credit", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T018", "asset_class": "Rates", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T019", "asset_class": "Commodities", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T020", "asset_class": "FX", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T021", "asset_class": "Rates", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T022", "asset_class": "Credit", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T023", "asset_class": "Equity", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T024", "asset_class": "Rates", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T025", "asset_class": "FX", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T026", "asset_class": "EventContract", "classification_flag": "NOVEL_INSTRUMENT_NO_TAXONOMY"}, {"trade_id": "T027", "asset_class": "EventContract", "classification_flag": "NOVEL_INSTRUMENT_NO_TAXONOMY"}, {"trade_id": "T028", "asset_class": "EventContract", "classification_flag": "NOVEL_INSTRUMENT_NO_TAXONOMY"}, {"trade_id": "T029", "asset_class": "EventContract", "classification_flag": "NOVEL_INSTRUMENT_NO_TAXONOMY"}, {"trade_id": "T030", "asset_class": "EventContract", "classification_flag": "NOVEL_INSTRUMENT_NO_TAXONOMY"}, {"trade_id": "T031", "asset_class": "Rates", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T032", "asset_class": "Credit", "classification_flag": "CONVENTIONAL_DERIVATIVE"}, {"trade_id": "T033", "asset_class": "FX", "classification_flag": "CONVENTIONAL_DERIVATIVE"}], "asset_classes": ["Commodities", "Credit", "Equity", "EventContract", "FX", "Rates"], "status_order": ["COMPLIANT", "NONCOMPLIANT", "CONDITIONAL", "NOT_APPLICABLE"], "status_colors": {"COMPLIANT": "#2fbf71", "NONCOMPLIANT": "#ef5b5b", "CONDITIONAL": "#e5a82e", "NOT_APPLICABLE": "#8d98aa"}, "matrix": [{"trade_id": "T001", "parse_status": "SUCCESS", "asset_class": "Rates", "instrument_type": "Swap", "use_case": "Fixed_Float", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Rates.Swap.Fixed_Float.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "platform": "SEF", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["other_counterparty_lei"], "note": "CFTC reporting required; validation found 1 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["other_counterparty_lei"], "note": "EMIR reporting required; validation found 1 issue(s)."}}}, {"trade_id": "T002", "parse_status": "SUCCESS", "asset_class": "Credit", "instrument_type": "Swap", "use_case": "Corporate", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Credit.Swap.Corporate.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["other_counterparty_lei"], "note": "CFTC reporting required; validation found 1 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["other_counterparty_lei"], "note": "EMIR reporting required; validation found 1 issue(s)."}}}, {"trade_id": "T003", "parse_status": "SUCCESS", "asset_class": "FX", "instrument_type": "Forward", "use_case": "NDF", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Foreign_Exchange.Forward.NDF.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": [], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 62, got 08."], "warnings": [], "failed_fields": ["other_counterparty_lei"], "note": "CFTC reporting required; validation found 1 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": [], "failed_fields": ["other_counterparty_lei", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 4 issue(s)."}}}, {"trade_id": "T004", "parse_status": "SUCCESS", "asset_class": "Equity", "instrument_type": "Option", "use_case": "SingleName_Put", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Equity.Option.Single_Name.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType, OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: LEI must be exactly 20 characters."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["other_counterparty_lei"], "note": "CFTC reporting required; validation found 1 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: LEI must be exactly 20 characters.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["other_counterparty_lei", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 4 issue(s)."}}}, {"trade_id": "T005", "parse_status": "SUCCESS", "asset_class": "Rates", "instrument_type": "Swap", "use_case": "Fixed_Float", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Rates.Swap.Fixed_Float.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["ReferenceRate uses legacy LIBOR reference rate GBP-LIBOR-BBA; codeset match retained, warning only.", "Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "platform": "SEF", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: ReferenceRate uses legacy LIBOR reference rate GBP-LIBOR-BBA; codeset match retained, warning only.", "upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti"], "note": "CFTC reporting required; validation found 2 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: ReferenceRate uses legacy LIBOR reference rate GBP-LIBOR-BBA; codeset match retained, warning only.", "upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti"], "note": "EMIR reporting required; validation found 2 issue(s)."}}}, {"trade_id": "T006", "parse_status": "SUCCESS", "asset_class": "Rates", "instrument_type": "Swap", "use_case": "Basis", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Rates.Swap.Basis.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: Missing UTI."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti"], "note": "CFTC reporting required; validation found 2 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: Missing UTI.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 5 issue(s)."}}}, {"trade_id": "T007", "parse_status": "SUCCESS", "asset_class": "Commodities", "instrument_type": "Swap", "use_case": "SingleName", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Commodities.Swap.Single_Index.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 62, got 08."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti"], "note": "CFTC reporting required; validation found 2 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 62, got 08.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 5 issue(s)."}}}, {"trade_id": "T008", "parse_status": "SUCCESS", "asset_class": "Rates", "instrument_type": "Option", "use_case": "Swaption", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "INVALID_ATTRIBUTES", "upi_product": "Rates.Option.Swaption.UPI.V1", "upi_classification_note": "", "upi_errors": ["Missing required UPI attribute: UnderlyingInstrumentUPI.", "OptionType='PAYER' is not one of ['CALL', 'OPTL', 'PUTO'].", "JSON Schema: Attributes: 'UnderlyingInstrumentUPI' is a required property"], "upi_warnings": ["Applied default values for required template attributes (DeliveryType, OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: UnderlyingInstrumentUPI.; OptionType='PAYER' is not one of ['CALL', 'OPTL', 'PUTO'].; JSON Schema: Attributes: 'UnderlyingInstrumentUPI' is a required property", "reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["upi", "reporting_counterparty_lei", "uti"], "note": "CFTC reporting required; validation found 3 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: UnderlyingInstrumentUPI.; OptionType='PAYER' is not one of ['CALL', 'OPTL', 'PUTO'].; JSON Schema: Attributes: 'UnderlyingInstrumentUPI' is a required property", "reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["upi", "reporting_counterparty_lei", "uti"], "note": "EMIR reporting required; validation found 3 issue(s)."}}}, {"trade_id": "T009", "parse_status": "SUCCESS", "asset_class": "FX", "instrument_type": "Option", "use_case": "Vanilla", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "INVALID_ATTRIBUTES", "upi_product": "Foreign_Exchange.Option.Vanilla_Option.UPI.V1", "upi_classification_note": "", "upi_errors": ["NotionalCurrency='INVALID_CCY' is not in codeset ISOCurrencyCode.json."], "upi_warnings": ["Applied default values for required template attributes (DeliveryType, OptionExerciseStyle); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; NotionalCurrency='INVALID_CCY' is not in codeset ISOCurrencyCode.json.", "other_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "notional_currency: 'INVALID_CCY' is not an ISO 4217 currency code."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, OptionExerciseStyle); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["upi", "other_counterparty_lei", "notional_currency"], "note": "CFTC reporting required; validation found 3 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; NotionalCurrency='INVALID_CCY' is not in codeset ISOCurrencyCode.json.", "other_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "notional_currency: 'INVALID_CCY' is not an ISO 4217 currency code.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, OptionExerciseStyle); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["upi", "other_counterparty_lei", "notional_currency", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 6 issue(s)."}}}, {"trade_id": "T010", "parse_status": "SUCCESS", "asset_class": "Credit", "instrument_type": "Swap", "use_case": "Index", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Credit.Swap.Index.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (UnderlyingIssuerType, DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "platform": "SEF", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (UnderlyingIssuerType, DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["other_counterparty_lei"], "note": "CFTC reporting required; validation found 1 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (UnderlyingIssuerType, DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["other_counterparty_lei"], "note": "EMIR reporting required; validation found 1 issue(s)."}}}, {"trade_id": "T011", "parse_status": "SUCCESS", "asset_class": "Rates", "instrument_type": "Swap", "use_case": "CrossCurrency", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "INVALID_ATTRIBUTES", "upi_product": "Rates.Swap.Cross_Currency_Fixed_Float.UPI.V1", "upi_classification_note": "", "upi_errors": ["Missing required UPI attribute: ReferenceRateTermValue.", "Missing required UPI attribute: ReferenceRateTermUnit.", "JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property", "JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property"], "upi_warnings": ["Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: ReferenceRateTermValue.; Missing required UPI attribute: ReferenceRateTermUnit.; JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property; JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property", "other_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "notional_currency: Missing required notional currency.", "notional_amount: Missing required notional amount."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["upi", "other_counterparty_lei", "notional_currency", "notional_amount"], "note": "CFTC reporting required; validation found 4 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: ReferenceRateTermValue.; Missing required UPI attribute: ReferenceRateTermUnit.; JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property; JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property", "other_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "notional_currency: Missing required notional currency.", "notional_amount: Missing required notional amount."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["upi", "other_counterparty_lei", "notional_currency", "notional_amount"], "note": "EMIR reporting required; validation found 4 issue(s)."}}}, {"trade_id": "T012", "parse_status": "SUCCESS", "asset_class": "Equity", "instrument_type": "Swap", "use_case": "TotalReturn_SingleIndex", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Equity.Swap.Total_Return_Swap_Single_Index.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti"], "note": "CFTC reporting required; validation found 2 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti"], "note": "EMIR reporting required; validation found 2 issue(s)."}}}, {"trade_id": "T013", "parse_status": "PARTIAL", "asset_class": "Rates", "instrument_type": "Swap", "use_case": "Inflation", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "INVALID_ATTRIBUTES", "upi_product": "Rates.Swap.Inflation_Swap.UPI.V1", "upi_classification_note": "", "upi_errors": ["Missing required UPI attribute: ReferenceRateTermValue.", "Missing required UPI attribute: ReferenceRateTermUnit.", "JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property", "JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property"], "upi_warnings": ["Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: ReferenceRateTermValue.; Missing required UPI attribute: ReferenceRateTermUnit.; JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property; JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property", "execution_timestamp: Partial value; expected ISO 8601 UTC timestamp."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["upi", "execution_timestamp"], "note": "CFTC reporting required; validation found 2 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: ReferenceRateTermValue.; Missing required UPI attribute: ReferenceRateTermUnit.; JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property; JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property", "execution_timestamp: Partial value; expected ISO 8601 UTC timestamp."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["upi", "execution_timestamp"], "note": "EMIR reporting required; validation found 2 issue(s)."}}}, {"trade_id": "T014", "parse_status": "SUCCESS", "asset_class": "FX", "instrument_type": "Swap", "use_case": "Standard", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Foreign_Exchange.Swap.FX_Swap.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "other_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 62, got 08."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "other_counterparty_lei", "uti"], "note": "CFTC reporting required; validation found 3 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "other_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 62, got 08.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "other_counterparty_lei", "uti", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 6 issue(s)."}}}, {"trade_id": "T015", "parse_status": "SUCCESS", "asset_class": "Rates", "instrument_type": "Cap_Floor", "use_case": "Cap", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Rates.Option.CapFloor.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti"], "note": "CFTC reporting required; validation found 2 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti"], "note": "EMIR reporting required; validation found 2 issue(s)."}}}, {"trade_id": "T016", "parse_status": "SUCCESS", "asset_class": "Equity", "instrument_type": "Swap", "use_case": "Variance", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Equity.Swap.Parameter_Return_Variance_Single_Index.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti"], "note": "CFTC reporting required; validation found 2 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 38, got 20.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 5 issue(s)."}}}, {"trade_id": "T017", "parse_status": "SUCCESS", "asset_class": "Credit", "instrument_type": "Swap", "use_case": "Sovereign", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Credit.Swap.Sovereign.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "COMPLIANT", "reporting_required": true, "errors": [], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": [], "note": "CFTC reporting requirements satisfied for this conventional derivative."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 3 issue(s)."}}}, {"trade_id": "T018", "parse_status": "SUCCESS", "asset_class": "Rates", "instrument_type": "Swap", "use_case": "OIS", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Rates.Swap.Fixed_Float_OIS.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "platform": "SEF", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["other_counterparty_lei"], "note": "CFTC reporting required; validation found 1 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["other_counterparty_lei"], "note": "EMIR reporting required; validation found 1 issue(s)."}}}, {"trade_id": "T019", "parse_status": "SUCCESS", "asset_class": "Commodities", "instrument_type": "Option", "use_case": "SingleName", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Commodities.Option.Single_Index.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 62, got 08."], "warnings": ["upi: Applied default values for required template attributes (OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti"], "note": "CFTC reporting required; validation found 2 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 62, got 08.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 5 issue(s)."}}}, {"trade_id": "T020", "parse_status": "SUCCESS", "asset_class": "FX", "instrument_type": "Option", "use_case": "Barrier", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Foreign_Exchange.Option.Barrier_Option.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (SettlementCurrency, DeliveryType, OptionExerciseStyle); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "other_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (SettlementCurrency, DeliveryType, OptionExerciseStyle); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "other_counterparty_lei", "uti"], "note": "CFTC reporting required; validation found 3 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "other_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (SettlementCurrency, DeliveryType, OptionExerciseStyle); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "other_counterparty_lei", "uti", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 6 issue(s)."}}}, {"trade_id": "T021", "parse_status": "PARTIAL", "asset_class": "Rates", "instrument_type": "Swap", "use_case": "Fixed_Float", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "INVALID_ATTRIBUTES", "upi_product": "Rates.Swap.Fixed_Float.UPI.V1", "upi_classification_note": "", "upi_errors": ["Missing required UPI attribute: ReferenceRateTermValue.", "Missing required UPI attribute: ReferenceRateTermUnit.", "JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property", "JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property"], "upi_warnings": ["Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "platform": "SEF", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: ReferenceRateTermValue.; Missing required UPI attribute: ReferenceRateTermUnit.; JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property; JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property", "maturity_date: Invalid value; expected YYYY-MM-DD date."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["upi", "maturity_date"], "note": "CFTC reporting required; validation found 2 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: ReferenceRateTermValue.; Missing required UPI attribute: ReferenceRateTermUnit.; JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property; JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property", "maturity_date: Invalid value; expected YYYY-MM-DD date.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["upi", "maturity_date", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 5 issue(s)."}}}, {"trade_id": "T022", "parse_status": "SUCCESS", "asset_class": "Credit", "instrument_type": "Swap", "use_case": "ABS", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Credit.Swap.ABS.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (UnderlyingIssuerType, DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (UnderlyingIssuerType, DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti"], "note": "CFTC reporting required; validation found 2 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (UnderlyingIssuerType, DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["reporting_counterparty_lei", "uti"], "note": "EMIR reporting required; validation found 2 issue(s)."}}}, {"trade_id": "T023", "parse_status": "SUCCESS", "asset_class": "Equity", "instrument_type": "Forward", "use_case": "SingleName", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Equity.Forward.Price_Return_Basic_Performance_Single_Name.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": [], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 26, got 27."], "warnings": [], "failed_fields": ["other_counterparty_lei"], "note": "CFTC reporting required; validation found 1 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": [], "failed_fields": ["other_counterparty_lei", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 4 issue(s)."}}}, {"trade_id": "T024", "parse_status": "SUCCESS", "asset_class": "Rates", "instrument_type": "Swap", "use_case": "Fixed_Float", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Rates.Swap.Fixed_Float.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "platform": "SEF", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 62, got 08."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["other_counterparty_lei"], "note": "CFTC reporting required; validation found 1 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 62, got 08."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["other_counterparty_lei"], "note": "EMIR reporting required; validation found 1 issue(s)."}}}, {"trade_id": "T025", "parse_status": "SUCCESS", "asset_class": "FX", "instrument_type": "Forward", "use_case": "Deliverable", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Foreign_Exchange.Forward.Forward.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": [], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 38, got 20."], "warnings": [], "failed_fields": ["other_counterparty_lei"], "note": "CFTC reporting required; validation found 1 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": [], "failed_fields": ["other_counterparty_lei", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 4 issue(s)."}}}, {"trade_id": "T026", "parse_status": "SUCCESS", "asset_class": "EventContract", "instrument_type": "BinaryEventContract", "use_case": "PoliticalOutcome", "classification_flag": "NOVEL_INSTRUMENT_NO_TAXONOMY", "upi_status": "NO_PRODUCT_DEFINITION", "upi_product": "", "upi_classification_note": "Instrument type 'BinaryEventContract' under asset class 'EventContract' has no product definition in the ANNA-DSB UPI library. This reflects the current regulatory classification of prediction and event contracts as outside the OTC derivatives taxonomy in most jurisdictions. Refer to Module 4 for classification analysis.", "upi_errors": [], "upi_warnings": [], "platform": "Kalshi", "event_type": "ELECTION_OUTCOME", "description": "Binary event contract on German federal election outcome. Pays USD 1.00 per contract if AfD achieves over 30 percent vote share in the 2025 Bundestagswahl.", "design_intent": "", "regimes": {"CFTC": {"status": "CONDITIONAL", "reporting_required": true, "errors": [], "warnings": ["upi: Event contract may be reportable on a CFTC-regulated DCM, but no ANNA-DSB UPI product definition exists."], "failed_fields": [], "note": "Kalshi/CFTC DCM event contract. Reporting may apply, but the current UPI taxonomy does not support binary event contracts."}, "EMIR": {"status": "NOT_APPLICABLE", "reporting_required": false, "errors": [], "warnings": [], "failed_fields": [], "note": "Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."}}}, {"trade_id": "T027", "parse_status": "SUCCESS", "asset_class": "EventContract", "instrument_type": "BinaryEventContract", "use_case": "MacroeconomicOutcome", "classification_flag": "NOVEL_INSTRUMENT_NO_TAXONOMY", "upi_status": "NO_PRODUCT_DEFINITION", "upi_product": "", "upi_classification_note": "Instrument type 'BinaryEventContract' under asset class 'EventContract' has no product definition in the ANNA-DSB UPI library. This reflects the current regulatory classification of prediction and event contracts as outside the OTC derivatives taxonomy in most jurisdictions. Refer to Module 4 for classification analysis.", "upi_errors": [], "upi_warnings": [], "platform": "Polymarket", "event_type": "MACROECONOMIC_THRESHOLD", "description": "Binary event contract paying USD 1.00 if US CPI inflation (all items, 12 month) exceeds 3.0 percent in Q3 2026 as reported by BLS.", "design_intent": "", "regimes": {"CFTC": {"status": "NOT_APPLICABLE", "reporting_required": false, "errors": [], "warnings": [], "failed_fields": [], "note": "Event contract is not executed on a CFTC-regulated DCM; Module 3 treats it as outside CFTC OTC reporting scope."}, "EMIR": {"status": "NOT_APPLICABLE", "reporting_required": false, "errors": [], "warnings": [], "failed_fields": [], "note": "Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."}}}, {"trade_id": "T028", "parse_status": "SUCCESS", "asset_class": "EventContract", "instrument_type": "BinaryEventContract", "use_case": "RegulatoryDecisionOutcome", "classification_flag": "NOVEL_INSTRUMENT_NO_TAXONOMY", "upi_status": "NO_PRODUCT_DEFINITION", "upi_product": "", "upi_classification_note": "Instrument type 'BinaryEventContract' under asset class 'EventContract' has no product definition in the ANNA-DSB UPI library. This reflects the current regulatory classification of prediction and event contracts as outside the OTC derivatives taxonomy in most jurisdictions. Refer to Module 4 for classification analysis.", "upi_errors": [], "upi_warnings": [], "platform": "Kalshi", "event_type": "REGULATORY_DECISION", "description": "Binary event contract paying USD 1.00 if ESMA formally approves the EU AI Act Annex III high risk classification for credit scoring models before 31 December 2026.", "design_intent": "", "regimes": {"CFTC": {"status": "CONDITIONAL", "reporting_required": true, "errors": [], "warnings": ["upi: Event contract may be reportable on a CFTC-regulated DCM, but no ANNA-DSB UPI product definition exists."], "failed_fields": [], "note": "Kalshi/CFTC DCM event contract. Reporting may apply, but the current UPI taxonomy does not support binary event contracts."}, "EMIR": {"status": "NOT_APPLICABLE", "reporting_required": false, "errors": [], "warnings": [], "failed_fields": [], "note": "Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."}}}, {"trade_id": "T029", "parse_status": "SUCCESS", "asset_class": "EventContract", "instrument_type": "BinaryEventContract", "use_case": "ClimatePolicyOutcome", "classification_flag": "NOVEL_INSTRUMENT_NO_TAXONOMY", "upi_status": "NO_PRODUCT_DEFINITION", "upi_product": "", "upi_classification_note": "Instrument type 'BinaryEventContract' under asset class 'EventContract' has no product definition in the ANNA-DSB UPI library. This reflects the current regulatory classification of prediction and event contracts as outside the OTC derivatives taxonomy in most jurisdictions. Refer to Module 4 for classification analysis.", "upi_errors": [], "upi_warnings": [], "platform": "Kalshi", "event_type": "REGULATORY_DECISION", "description": "Binary event contract paying USD 1.00 per contract if the EU formally approves a Carbon Border Adjustment Mechanism threshold increase before 31 December 2027.", "design_intent": "Clean EventContract on a CFTC DCM. Expected: parser OK; UPI NO_PRODUCT_DEFINITION; CFTC CONDITIONAL; EMIR NOT_APPLICABLE. Tests the 'novel-but-clean' path: a structurally well-formed event contract that still cannot be assigned a UPI because the taxonomy does not cover it.", "regimes": {"CFTC": {"status": "CONDITIONAL", "reporting_required": true, "errors": [], "warnings": ["upi: Event contract may be reportable on a CFTC-regulated DCM, but no ANNA-DSB UPI product definition exists."], "failed_fields": [], "note": "Kalshi/CFTC DCM event contract. Reporting may apply, but the current UPI taxonomy does not support binary event contracts."}, "EMIR": {"status": "NOT_APPLICABLE", "reporting_required": false, "errors": [], "warnings": [], "failed_fields": [], "note": "Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."}}}, {"trade_id": "T030", "parse_status": "PARTIAL", "asset_class": "EventContract", "instrument_type": "BinaryEventContract", "use_case": "PoliticalOutcome", "classification_flag": "NOVEL_INSTRUMENT_NO_TAXONOMY", "upi_status": "NO_PRODUCT_DEFINITION", "upi_product": "", "upi_classification_note": "Instrument type 'BinaryEventContract' under asset class 'EventContract' has no product definition in the ANNA-DSB UPI library. This reflects the current regulatory classification of prediction and event contracts as outside the OTC derivatives taxonomy in most jurisdictions. Refer to Module 4 for classification analysis.", "upi_errors": [], "upi_warnings": [], "platform": "Polymarket", "event_type": "ELECTION_OUTCOME", "description": "Binary event contract paying USDC 1.00 if Marine Le Pen's Rassemblement National wins the 2027 French presidential election second round.", "design_intent": "Worst-case EventContract: offshore venue, missing UTI, invalid timestamp, non-ISO settlement currency, missing other-counterparty LEI. Expected: parser PARTIAL on timestamp; UPI NO_PRODUCT_DEFINITION; Module 3 multiple non-compliant findings under both CFTC and EMIR. Demonstrates the full stack of regulatory invisibility.", "regimes": {"CFTC": {"status": "NOT_APPLICABLE", "reporting_required": false, "errors": [], "warnings": [], "failed_fields": [], "note": "Event contract is not executed on a CFTC-regulated DCM; Module 3 treats it as outside CFTC OTC reporting scope."}, "EMIR": {"status": "NOT_APPLICABLE", "reporting_required": false, "errors": [], "warnings": [], "failed_fields": [], "note": "Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."}}}, {"trade_id": "T031", "parse_status": "SUCCESS", "asset_class": "Rates", "instrument_type": "Swap", "use_case": "Fixed_Float", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Rates.Swap.Fixed_Float.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "platform": "SEF", "event_type": "", "description": "", "design_intent": "Conventional Rates swap with intentional UTI namespace mismatch: the first 20 characters of the UTI do not equal the reporting_counterparty_lei. Expected: parser OK; UPI MATCHED_WITH_WARNINGS or MATCHED; Module 3 reports UTI namespace_mismatch finding. Demonstrates the Module 3 UTI namespace validation step.", "regimes": {"CFTC": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["uti: UTI namespace LEI must equal reporting counterparty LEI."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["uti"], "note": "CFTC reporting required; validation found 1 issue(s)."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["uti: UTI namespace LEI must equal reporting counterparty LEI."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["uti"], "note": "EMIR reporting required; validation found 1 issue(s)."}}}, {"trade_id": "T032", "parse_status": "SUCCESS", "asset_class": "Credit", "instrument_type": "Swap", "use_case": "Corporate", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Credit.Swap.Corporate.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": ["Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "Conventional Credit Default Swap with all EMIR margin fields set to null. Expected: parser OK; UPI MATCHED or MATCHED_WITH_WARNINGS; Module 3 reports EMIR_MARGIN_NULL non-compliant finding (null is not the same as 0 under EMIR Refit / MAS). Demonstrates the EMIR margin trap from the lecture.", "regimes": {"CFTC": {"status": "COMPLIANT", "reporting_required": true, "errors": [], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": [], "note": "CFTC reporting requirements satisfied for this conventional derivative."}, "EMIR": {"status": "NONCOMPLIANT", "reporting_required": true, "errors": ["collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "failed_fields": ["collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "note": "EMIR reporting required; validation found 3 issue(s)."}}}, {"trade_id": "T033", "parse_status": "SUCCESS", "asset_class": "FX", "instrument_type": "Forward", "use_case": "Deliverable", "classification_flag": "CONVENTIONAL_DERIVATIVE", "upi_status": "FOUND", "upi_product": "Foreign_Exchange.Forward.Forward.UPI.V1", "upi_classification_note": "", "upi_errors": [], "upi_warnings": [], "platform": "VOICE", "event_type": "", "description": "", "design_intent": "Fully clean FX Forward. Expected: parser OK; UPI MATCHED (or MATCHED_WITH_WARNINGS for one defaulted attribute); Module 3 fully compliant under both CFTC and EMIR. Acts as the 'green path' control case in the additional-trades set.", "regimes": {"CFTC": {"status": "COMPLIANT", "reporting_required": true, "errors": [], "warnings": [], "failed_fields": [], "note": "CFTC reporting requirements satisfied for this conventional derivative."}, "EMIR": {"status": "COMPLIANT", "reporting_required": true, "errors": [], "warnings": [], "failed_fields": [], "note": "EMIR reporting requirements satisfied for this conventional derivative."}}}], "heatmap": {"z": [[1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [0, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [1, 1], [2, 3], [3, 3], [2, 3], [2, 3], [3, 3], [1, 1], [0, 1], [0, 0]], "text": [["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["COMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["CONDITIONAL", "NOT_APPLICABLE"], ["NOT_APPLICABLE", "NOT_APPLICABLE"], ["CONDITIONAL", "NOT_APPLICABLE"], ["CONDITIONAL", "NOT_APPLICABLE"], ["NOT_APPLICABLE", "NOT_APPLICABLE"], ["NONCOMPLIANT", "NONCOMPLIANT"], ["COMPLIANT", "NONCOMPLIANT"], ["COMPLIANT", "COMPLIANT"]], "hover": [["Failed fields: other_counterparty_lei<br>Errors: 1<br>Warnings: 1<br>Note: CFTC reporting required; validation found 1 issue(s).", "Failed fields: other_counterparty_lei<br>Errors: 1<br>Warnings: 1<br>Note: EMIR reporting required; validation found 1 issue(s)."], ["Failed fields: other_counterparty_lei<br>Errors: 1<br>Warnings: 1<br>Note: CFTC reporting required; validation found 1 issue(s).", "Failed fields: other_counterparty_lei<br>Errors: 1<br>Warnings: 1<br>Note: EMIR reporting required; validation found 1 issue(s)."], ["Failed fields: other_counterparty_lei<br>Errors: 1<br>Note: CFTC reporting required; validation found 1 issue(s).", "Failed fields: other_counterparty_lei, collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 4<br>Note: EMIR reporting required; validation found 4 issue(s)."], ["Failed fields: other_counterparty_lei<br>Errors: 1<br>Warnings: 1<br>Note: CFTC reporting required; validation found 1 issue(s).", "Failed fields: other_counterparty_lei, collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 4<br>Warnings: 1<br>Note: EMIR reporting required; validation found 4 issue(s)."], ["Failed fields: reporting_counterparty_lei, uti<br>Errors: 2<br>Warnings: 2<br>Note: CFTC reporting required; validation found 2 issue(s).", "Failed fields: reporting_counterparty_lei, uti<br>Errors: 2<br>Warnings: 2<br>Note: EMIR reporting required; validation found 2 issue(s)."], ["Failed fields: reporting_counterparty_lei, uti<br>Errors: 2<br>Warnings: 1<br>Note: CFTC reporting required; validation found 2 issue(s).", "Failed fields: reporting_counterparty_lei, uti, collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 5<br>Warnings: 1<br>Note: EMIR reporting required; validation found 5 issue(s)."], ["Failed fields: reporting_counterparty_lei, uti<br>Errors: 2<br>Warnings: 1<br>Note: CFTC reporting required; validation found 2 issue(s).", "Failed fields: reporting_counterparty_lei, uti, collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 5<br>Warnings: 1<br>Note: EMIR reporting required; validation found 5 issue(s)."], ["Failed fields: upi, reporting_counterparty_lei, uti<br>Errors: 3<br>Warnings: 1<br>Note: CFTC reporting required; validation found 3 issue(s).", "Failed fields: upi, reporting_counterparty_lei, uti<br>Errors: 3<br>Warnings: 1<br>Note: EMIR reporting required; validation found 3 issue(s)."], ["Failed fields: upi, other_counterparty_lei, notional_currency<br>Errors: 3<br>Warnings: 1<br>Note: CFTC reporting required; validation found 3 issue(s).", "Failed fields: upi, other_counterparty_lei, notional_currency, collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 6<br>Warnings: 1<br>Note: EMIR reporting required; validation found 6 issue(s)."], ["Failed fields: other_counterparty_lei<br>Errors: 1<br>Warnings: 1<br>Note: CFTC reporting required; validation found 1 issue(s).", "Failed fields: other_counterparty_lei<br>Errors: 1<br>Warnings: 1<br>Note: EMIR reporting required; validation found 1 issue(s)."], ["Failed fields: upi, other_counterparty_lei, notional_currency, notional_amount<br>Errors: 4<br>Warnings: 1<br>Note: CFTC reporting required; validation found 4 issue(s).", "Failed fields: upi, other_counterparty_lei, notional_currency, notional_amount<br>Errors: 4<br>Warnings: 1<br>Note: EMIR reporting required; validation found 4 issue(s)."], ["Failed fields: reporting_counterparty_lei, uti<br>Errors: 2<br>Warnings: 1<br>Note: CFTC reporting required; validation found 2 issue(s).", "Failed fields: reporting_counterparty_lei, uti<br>Errors: 2<br>Warnings: 1<br>Note: EMIR reporting required; validation found 2 issue(s)."], ["Failed fields: upi, execution_timestamp<br>Errors: 2<br>Warnings: 1<br>Note: CFTC reporting required; validation found 2 issue(s).", "Failed fields: upi, execution_timestamp<br>Errors: 2<br>Warnings: 1<br>Note: EMIR reporting required; validation found 2 issue(s)."], ["Failed fields: reporting_counterparty_lei, other_counterparty_lei, uti<br>Errors: 3<br>Warnings: 1<br>Note: CFTC reporting required; validation found 3 issue(s).", "Failed fields: reporting_counterparty_lei, other_counterparty_lei, uti, collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 6<br>Warnings: 1<br>Note: EMIR reporting required; validation found 6 issue(s)."], ["Failed fields: reporting_counterparty_lei, uti<br>Errors: 2<br>Warnings: 1<br>Note: CFTC reporting required; validation found 2 issue(s).", "Failed fields: reporting_counterparty_lei, uti<br>Errors: 2<br>Warnings: 1<br>Note: EMIR reporting required; validation found 2 issue(s)."], ["Failed fields: reporting_counterparty_lei, uti<br>Errors: 2<br>Warnings: 1<br>Note: CFTC reporting required; validation found 2 issue(s).", "Failed fields: reporting_counterparty_lei, uti, collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 5<br>Warnings: 1<br>Note: EMIR reporting required; validation found 5 issue(s)."], ["Warnings: 1<br>Note: CFTC reporting requirements satisfied for this conventional derivative.", "Failed fields: collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 3<br>Warnings: 1<br>Note: EMIR reporting required; validation found 3 issue(s)."], ["Failed fields: other_counterparty_lei<br>Errors: 1<br>Warnings: 1<br>Note: CFTC reporting required; validation found 1 issue(s).", "Failed fields: other_counterparty_lei<br>Errors: 1<br>Warnings: 1<br>Note: EMIR reporting required; validation found 1 issue(s)."], ["Failed fields: reporting_counterparty_lei, uti<br>Errors: 2<br>Warnings: 1<br>Note: CFTC reporting required; validation found 2 issue(s).", "Failed fields: reporting_counterparty_lei, uti, collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 5<br>Warnings: 1<br>Note: EMIR reporting required; validation found 5 issue(s)."], ["Failed fields: reporting_counterparty_lei, other_counterparty_lei, uti<br>Errors: 3<br>Warnings: 1<br>Note: CFTC reporting required; validation found 3 issue(s).", "Failed fields: reporting_counterparty_lei, other_counterparty_lei, uti, collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 6<br>Warnings: 1<br>Note: EMIR reporting required; validation found 6 issue(s)."], ["Failed fields: upi, maturity_date<br>Errors: 2<br>Warnings: 1<br>Note: CFTC reporting required; validation found 2 issue(s).", "Failed fields: upi, maturity_date, collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 5<br>Warnings: 1<br>Note: EMIR reporting required; validation found 5 issue(s)."], ["Failed fields: reporting_counterparty_lei, uti<br>Errors: 2<br>Warnings: 1<br>Note: CFTC reporting required; validation found 2 issue(s).", "Failed fields: reporting_counterparty_lei, uti<br>Errors: 2<br>Warnings: 1<br>Note: EMIR reporting required; validation found 2 issue(s)."], ["Failed fields: other_counterparty_lei<br>Errors: 1<br>Note: CFTC reporting required; validation found 1 issue(s).", "Failed fields: other_counterparty_lei, collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 4<br>Note: EMIR reporting required; validation found 4 issue(s)."], ["Failed fields: other_counterparty_lei<br>Errors: 1<br>Warnings: 1<br>Note: CFTC reporting required; validation found 1 issue(s).", "Failed fields: other_counterparty_lei<br>Errors: 1<br>Warnings: 1<br>Note: EMIR reporting required; validation found 1 issue(s)."], ["Failed fields: other_counterparty_lei<br>Errors: 1<br>Note: CFTC reporting required; validation found 1 issue(s).", "Failed fields: other_counterparty_lei, collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 4<br>Note: EMIR reporting required; validation found 4 issue(s)."], ["Warnings: 1<br>Note: Kalshi/CFTC DCM event contract. Reporting may apply, but the current UPI taxonomy does not support binary event contracts.", "Note: Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."], ["Note: Event contract is not executed on a CFTC-regulated DCM; Module 3 treats it as outside CFTC OTC reporting scope.", "Note: Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."], ["Warnings: 1<br>Note: Kalshi/CFTC DCM event contract. Reporting may apply, but the current UPI taxonomy does not support binary event contracts.", "Note: Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."], ["Warnings: 1<br>Note: Kalshi/CFTC DCM event contract. Reporting may apply, but the current UPI taxonomy does not support binary event contracts.", "Note: Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."], ["Note: Event contract is not executed on a CFTC-regulated DCM; Module 3 treats it as outside CFTC OTC reporting scope.", "Note: Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."], ["Failed fields: uti<br>Errors: 1<br>Warnings: 1<br>Note: CFTC reporting required; validation found 1 issue(s).", "Failed fields: uti<br>Errors: 1<br>Warnings: 1<br>Note: EMIR reporting required; validation found 1 issue(s)."], ["Warnings: 1<br>Note: CFTC reporting requirements satisfied for this conventional derivative.", "Failed fields: collateral_portfolio_code, initial_margin_posted, variation_margin_posted<br>Errors: 3<br>Warnings: 1<br>Note: EMIR reporting required; validation found 3 issue(s)."], ["Note: CFTC reporting requirements satisfied for this conventional derivative.", "Note: EMIR reporting requirements satisfied for this conventional derivative."]], "details": [[{"trade_id": "T001", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 1 issue(s)."}, {"trade_id": "T001", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 1 issue(s)."}], [{"trade_id": "T002", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Credit", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 1 issue(s)."}, {"trade_id": "T002", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Credit", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 1 issue(s)."}], [{"trade_id": "T003", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "FX", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 62, got 08."], "warnings": [], "note": "CFTC reporting required; validation found 1 issue(s)."}, {"trade_id": "T003", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "FX", "failed_fields": ["other_counterparty_lei", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": [], "note": "EMIR reporting required; validation found 4 issue(s)."}], [{"trade_id": "T004", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Equity", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: LEI must be exactly 20 characters."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 1 issue(s)."}, {"trade_id": "T004", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Equity", "failed_fields": ["other_counterparty_lei", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["other_counterparty_lei: LEI must be exactly 20 characters.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 4 issue(s)."}], [{"trade_id": "T005", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["reporting_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: ReferenceRate uses legacy LIBOR reference rate GBP-LIBOR-BBA; codeset match retained, warning only.", "upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 2 issue(s)."}, {"trade_id": "T005", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["reporting_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: ReferenceRate uses legacy LIBOR reference rate GBP-LIBOR-BBA; codeset match retained, warning only.", "upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 2 issue(s)."}], [{"trade_id": "T006", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["reporting_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: Missing UTI."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 2 issue(s)."}, {"trade_id": "T006", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["reporting_counterparty_lei", "uti", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: Missing UTI.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 5 issue(s)."}], [{"trade_id": "T007", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Commodities", "failed_fields": ["reporting_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 62, got 08."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 2 issue(s)."}, {"trade_id": "T007", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Commodities", "failed_fields": ["reporting_counterparty_lei", "uti", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 62, got 08.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 5 issue(s)."}], [{"trade_id": "T008", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["upi", "reporting_counterparty_lei", "uti"], "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: UnderlyingInstrumentUPI.; OptionType='PAYER' is not one of ['CALL', 'OPTL', 'PUTO'].; JSON Schema: Attributes: 'UnderlyingInstrumentUPI' is a required property", "reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 3 issue(s)."}, {"trade_id": "T008", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["upi", "reporting_counterparty_lei", "uti"], "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: UnderlyingInstrumentUPI.; OptionType='PAYER' is not one of ['CALL', 'OPTL', 'PUTO'].; JSON Schema: Attributes: 'UnderlyingInstrumentUPI' is a required property", "reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 3 issue(s)."}], [{"trade_id": "T009", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "FX", "failed_fields": ["upi", "other_counterparty_lei", "notional_currency"], "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; NotionalCurrency='INVALID_CCY' is not in codeset ISOCurrencyCode.json.", "other_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "notional_currency: 'INVALID_CCY' is not an ISO 4217 currency code."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, OptionExerciseStyle); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 3 issue(s)."}, {"trade_id": "T009", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "FX", "failed_fields": ["upi", "other_counterparty_lei", "notional_currency", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; NotionalCurrency='INVALID_CCY' is not in codeset ISOCurrencyCode.json.", "other_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "notional_currency: 'INVALID_CCY' is not an ISO 4217 currency code.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, OptionExerciseStyle); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 6 issue(s)."}], [{"trade_id": "T010", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Credit", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (UnderlyingIssuerType, DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 1 issue(s)."}, {"trade_id": "T010", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Credit", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (UnderlyingIssuerType, DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 1 issue(s)."}], [{"trade_id": "T011", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["upi", "other_counterparty_lei", "notional_currency", "notional_amount"], "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: ReferenceRateTermValue.; Missing required UPI attribute: ReferenceRateTermUnit.; JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property; JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property", "other_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "notional_currency: Missing required notional currency.", "notional_amount: Missing required notional amount."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 4 issue(s)."}, {"trade_id": "T011", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["upi", "other_counterparty_lei", "notional_currency", "notional_amount"], "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: ReferenceRateTermValue.; Missing required UPI attribute: ReferenceRateTermUnit.; JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property; JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property", "other_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "notional_currency: Missing required notional currency.", "notional_amount: Missing required notional amount."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 4 issue(s)."}], [{"trade_id": "T012", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Equity", "failed_fields": ["reporting_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 2 issue(s)."}, {"trade_id": "T012", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Equity", "failed_fields": ["reporting_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 2 issue(s)."}], [{"trade_id": "T013", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["upi", "execution_timestamp"], "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: ReferenceRateTermValue.; Missing required UPI attribute: ReferenceRateTermUnit.; JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property; JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property", "execution_timestamp: Partial value; expected ISO 8601 UTC timestamp."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 2 issue(s)."}, {"trade_id": "T013", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["upi", "execution_timestamp"], "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: ReferenceRateTermValue.; Missing required UPI attribute: ReferenceRateTermUnit.; JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property; JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property", "execution_timestamp: Partial value; expected ISO 8601 UTC timestamp."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 2 issue(s)."}], [{"trade_id": "T014", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "FX", "failed_fields": ["reporting_counterparty_lei", "other_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "other_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 62, got 08."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 3 issue(s)."}, {"trade_id": "T014", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "FX", "failed_fields": ["reporting_counterparty_lei", "other_counterparty_lei", "uti", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "other_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 62, got 08.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 6 issue(s)."}], [{"trade_id": "T015", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["reporting_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 2 issue(s)."}, {"trade_id": "T015", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["reporting_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 2 issue(s)."}], [{"trade_id": "T016", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Equity", "failed_fields": ["reporting_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 2 issue(s)."}, {"trade_id": "T016", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Equity", "failed_fields": ["reporting_counterparty_lei", "uti", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 38, got 20.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 5 issue(s)."}], [{"trade_id": "T017", "regime": "CFTC", "status": "COMPLIANT", "asset_class": "Credit", "failed_fields": [], "errors": [], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting requirements satisfied for this conventional derivative."}, {"trade_id": "T017", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Credit", "failed_fields": ["collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 3 issue(s)."}], [{"trade_id": "T018", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 1 issue(s)."}, {"trade_id": "T018", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 1 issue(s)."}], [{"trade_id": "T019", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Commodities", "failed_fields": ["reporting_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 62, got 08."], "warnings": ["upi: Applied default values for required template attributes (OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 2 issue(s)."}, {"trade_id": "T019", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Commodities", "failed_fields": ["reporting_counterparty_lei", "uti", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 62, got 08.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 5 issue(s)."}], [{"trade_id": "T020", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "FX", "failed_fields": ["reporting_counterparty_lei", "other_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "other_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27."], "warnings": ["upi: Applied default values for required template attributes (SettlementCurrency, DeliveryType, OptionExerciseStyle); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 3 issue(s)."}, {"trade_id": "T020", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "FX", "failed_fields": ["reporting_counterparty_lei", "other_counterparty_lei", "uti", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "other_counterparty_lei: Invalid LEI check digits: expected 62, got 08.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 26, got 27.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (SettlementCurrency, DeliveryType, OptionExerciseStyle); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 6 issue(s)."}], [{"trade_id": "T021", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["upi", "maturity_date"], "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: ReferenceRateTermValue.; Missing required UPI attribute: ReferenceRateTermUnit.; JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property; JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property", "maturity_date: Invalid value; expected YYYY-MM-DD date."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 2 issue(s)."}, {"trade_id": "T021", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["upi", "maturity_date", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["upi: UPI lookup status INVALID_ATTRIBUTES; Missing required UPI attribute: ReferenceRateTermValue.; Missing required UPI attribute: ReferenceRateTermUnit.; JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property; JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property", "maturity_date: Invalid value; expected YYYY-MM-DD date.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 5 issue(s)."}], [{"trade_id": "T022", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Credit", "failed_fields": ["reporting_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (UnderlyingIssuerType, DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 2 issue(s)."}, {"trade_id": "T022", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Credit", "failed_fields": ["reporting_counterparty_lei", "uti"], "errors": ["reporting_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "uti: UTI namespace LEI is invalid: Invalid LEI check digits: expected 38, got 20."], "warnings": ["upi: Applied default values for required template attributes (UnderlyingIssuerType, DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 2 issue(s)."}], [{"trade_id": "T023", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Equity", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 26, got 27."], "warnings": [], "note": "CFTC reporting required; validation found 1 issue(s)."}, {"trade_id": "T023", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Equity", "failed_fields": ["other_counterparty_lei", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 26, got 27.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": [], "note": "EMIR reporting required; validation found 4 issue(s)."}], [{"trade_id": "T024", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 62, got 08."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 1 issue(s)."}, {"trade_id": "T024", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 62, got 08."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 1 issue(s)."}], [{"trade_id": "T025", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "FX", "failed_fields": ["other_counterparty_lei"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 38, got 20."], "warnings": [], "note": "CFTC reporting required; validation found 1 issue(s)."}, {"trade_id": "T025", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "FX", "failed_fields": ["other_counterparty_lei", "collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["other_counterparty_lei: Invalid LEI check digits: expected 38, got 20.", "collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": [], "note": "EMIR reporting required; validation found 4 issue(s)."}], [{"trade_id": "T026", "regime": "CFTC", "status": "CONDITIONAL", "asset_class": "EventContract", "failed_fields": [], "errors": [], "warnings": ["upi: Event contract may be reportable on a CFTC-regulated DCM, but no ANNA-DSB UPI product definition exists."], "note": "Kalshi/CFTC DCM event contract. Reporting may apply, but the current UPI taxonomy does not support binary event contracts."}, {"trade_id": "T026", "regime": "EMIR", "status": "NOT_APPLICABLE", "asset_class": "EventContract", "failed_fields": [], "errors": [], "warnings": [], "note": "Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."}], [{"trade_id": "T027", "regime": "CFTC", "status": "NOT_APPLICABLE", "asset_class": "EventContract", "failed_fields": [], "errors": [], "warnings": [], "note": "Event contract is not executed on a CFTC-regulated DCM; Module 3 treats it as outside CFTC OTC reporting scope."}, {"trade_id": "T027", "regime": "EMIR", "status": "NOT_APPLICABLE", "asset_class": "EventContract", "failed_fields": [], "errors": [], "warnings": [], "note": "Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."}], [{"trade_id": "T028", "regime": "CFTC", "status": "CONDITIONAL", "asset_class": "EventContract", "failed_fields": [], "errors": [], "warnings": ["upi: Event contract may be reportable on a CFTC-regulated DCM, but no ANNA-DSB UPI product definition exists."], "note": "Kalshi/CFTC DCM event contract. Reporting may apply, but the current UPI taxonomy does not support binary event contracts."}, {"trade_id": "T028", "regime": "EMIR", "status": "NOT_APPLICABLE", "asset_class": "EventContract", "failed_fields": [], "errors": [], "warnings": [], "note": "Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."}], [{"trade_id": "T029", "regime": "CFTC", "status": "CONDITIONAL", "asset_class": "EventContract", "failed_fields": [], "errors": [], "warnings": ["upi: Event contract may be reportable on a CFTC-regulated DCM, but no ANNA-DSB UPI product definition exists."], "note": "Kalshi/CFTC DCM event contract. Reporting may apply, but the current UPI taxonomy does not support binary event contracts."}, {"trade_id": "T029", "regime": "EMIR", "status": "NOT_APPLICABLE", "asset_class": "EventContract", "failed_fields": [], "errors": [], "warnings": [], "note": "Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."}], [{"trade_id": "T030", "regime": "CFTC", "status": "NOT_APPLICABLE", "asset_class": "EventContract", "failed_fields": [], "errors": [], "warnings": [], "note": "Event contract is not executed on a CFTC-regulated DCM; Module 3 treats it as outside CFTC OTC reporting scope."}, {"trade_id": "T030", "regime": "EMIR", "status": "NOT_APPLICABLE", "asset_class": "EventContract", "failed_fields": [], "errors": [], "warnings": [], "note": "Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here."}], [{"trade_id": "T031", "regime": "CFTC", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["uti"], "errors": ["uti: UTI namespace LEI must equal reporting counterparty LEI."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting required; validation found 1 issue(s)."}, {"trade_id": "T031", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Rates", "failed_fields": ["uti"], "errors": ["uti: UTI namespace LEI must equal reporting counterparty LEI."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 1 issue(s)."}], [{"trade_id": "T032", "regime": "CFTC", "status": "COMPLIANT", "asset_class": "Credit", "failed_fields": [], "errors": [], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "CFTC reporting requirements satisfied for this conventional derivative."}, {"trade_id": "T032", "regime": "EMIR", "status": "NONCOMPLIANT", "asset_class": "Credit", "failed_fields": ["collateral_portfolio_code", "initial_margin_posted", "variation_margin_posted"], "errors": ["collateral_portfolio_code: Missing required EMIR collateral portfolio code.", "initial_margin_posted: Missing required EMIR initial margin posted.", "variation_margin_posted: Missing required EMIR variation margin posted."], "warnings": ["upi: Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."], "note": "EMIR reporting required; validation found 3 issue(s)."}], [{"trade_id": "T033", "regime": "CFTC", "status": "COMPLIANT", "asset_class": "FX", "failed_fields": [], "errors": [], "warnings": [], "note": "CFTC reporting requirements satisfied for this conventional derivative."}, {"trade_id": "T033", "regime": "EMIR", "status": "COMPLIANT", "asset_class": "FX", "failed_fields": [], "errors": [], "warnings": [], "note": "EMIR reporting requirements satisfied for this conventional derivative."}]], "trade_ids": ["T001", "T002", "T003", "T004", "T005", "T006", "T007", "T008", "T009", "T010", "T011", "T012", "T013", "T014", "T015", "T016", "T017", "T018", "T019", "T020", "T021", "T022", "T023", "T024", "T025", "T026", "T027", "T028", "T029", "T030", "T031", "T032", "T033"]}, "error_frequency": [{"field": "other_counterparty_lei", "count": 26}, {"field": "uti", "count": 24}, {"field": "reporting_counterparty_lei", "count": 22}, {"field": "collateral_portfolio_code", "count": 14}, {"field": "initial_margin_posted", "count": 14}, {"field": "variation_margin_posted", "count": 14}, {"field": "upi", "count": 10}, {"field": "notional_currency", "count": 4}, {"field": "notional_amount", "count": 2}, {"field": "execution_timestamp", "count": 2}, {"field": "maturity_date", "count": 2}], "asset_breakdown": [{"asset_class": "Commodities", "regime": "CFTC", "compliance_rate": 0.0, "compliant": 0, "required": 2, "label": "0/2 reportable trades compliant"}, {"asset_class": "Commodities", "regime": "EMIR", "compliance_rate": 0.0, "compliant": 0, "required": 2, "label": "0/2 reportable trades compliant"}, {"asset_class": "Credit", "regime": "CFTC", "compliance_rate": 0.4, "compliant": 2, "required": 5, "label": "2/5 reportable trades compliant"}, {"asset_class": "Credit", "regime": "EMIR", "compliance_rate": 0.0, "compliant": 0, "required": 5, "label": "0/5 reportable trades compliant"}, {"asset_class": "Equity", "regime": "CFTC", "compliance_rate": 0.0, "compliant": 0, "required": 4, "label": "0/4 reportable trades compliant"}, {"asset_class": "Equity", "regime": "EMIR", "compliance_rate": 0.0, "compliant": 0, "required": 4, "label": "0/4 reportable trades compliant"}, {"asset_class": "EventContract", "regime": "CFTC", "compliance_rate": 0.0, "compliant": 0, "required": 3, "label": "0/3 reportable trades compliant"}, {"asset_class": "EventContract", "regime": "EMIR", "compliance_rate": null, "compliant": 0, "required": 0, "label": "No reportable trades"}, {"asset_class": "FX", "regime": "CFTC", "compliance_rate": 0.16666666666666666, "compliant": 1, "required": 6, "label": "1/6 reportable trades compliant"}, {"asset_class": "FX", "regime": "EMIR", "compliance_rate": 0.16666666666666666, "compliant": 1, "required": 6, "label": "1/6 reportable trades compliant"}, {"asset_class": "Rates", "regime": "CFTC", "compliance_rate": 0.0, "compliant": 0, "required": 11, "label": "0/11 reportable trades compliant"}, {"asset_class": "Rates", "regime": "EMIR", "compliance_rate": 0.0, "compliant": 0, "required": 11, "label": "0/11 reportable trades compliant"}], "frontier": [{"trade_id": "T026", "platform": "Kalshi", "event_type": "ELECTION_OUTCOME", "cftc_status": "CONDITIONAL", "cftc_note": "Kalshi/CFTC DCM event contract. Reporting may apply, but the current UPI taxonomy does not support binary event contracts.", "emir_status": "NOT_APPLICABLE", "emir_note": "Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here.", "classification_note": "Instrument type 'BinaryEventContract' under asset class 'EventContract' has no product definition in the ANNA-DSB UPI library. This reflects the current regulatory classification of prediction and event contracts as outside the OTC derivatives taxonomy in most jurisdictions. Refer to Module 4 for classification analysis."}, {"trade_id": "T027", "platform": "Polymarket", "event_type": "MACROECONOMIC_THRESHOLD", "cftc_status": "NOT_APPLICABLE", "cftc_note": "Event contract is not executed on a CFTC-regulated DCM; Module 3 treats it as outside CFTC OTC reporting scope.", "emir_status": "NOT_APPLICABLE", "emir_note": "Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here.", "classification_note": "Instrument type 'BinaryEventContract' under asset class 'EventContract' has no product definition in the ANNA-DSB UPI library. This reflects the current regulatory classification of prediction and event contracts as outside the OTC derivatives taxonomy in most jurisdictions. Refer to Module 4 for classification analysis."}, {"trade_id": "T028", "platform": "Kalshi", "event_type": "REGULATORY_DECISION", "cftc_status": "CONDITIONAL", "cftc_note": "Kalshi/CFTC DCM event contract. Reporting may apply, but the current UPI taxonomy does not support binary event contracts.", "emir_status": "NOT_APPLICABLE", "emir_note": "Event contracts are treated as outside EMIR OTC derivative reporting scope under the gambling/outside-taxonomy classification used here.", "classification_note": "Instrument type 'BinaryEventContract' under asset class 'EventContract' has no product definition in the ANNA-DSB UPI library. This reflects the current regulatory classification of prediction and event contracts as outside the OTC derivatives taxonomy in most jurisdictions. Refer to Module 4 for classification analysis."}], "interpretation": ["The report covers 33 trades across CFTC and EMIR. CFTC produces 3 compliant, 25 noncompliant, 3 conditional, and 2 not-applicable outcomes; EMIR produces 1 compliant, 27 noncompliant, and 5 not-applicable outcomes.", "The most frequent failing field is other_counterparty_lei, appearing 26 times across regime-level checks. The pattern shows that identifier quality, margin data, and UPI validation are the practical control points a compliance team would investigate first.", "The strongest asset-class/regime compliance rate is Credit under CFTC at 40% (2/5 reportable trades compliant). The frontier trades make the taxonomy gap explicit: T026 is CONDITIONAL under CFTC, T027 is NOT_APPLICABLE under CFTC, T028 is CONDITIONAL under CFTC, while all three are outside EMIR reporting scope in this model."]};
+    let statusOrder = DATA.status_order;
+    let statusColors = DATA.status_colors;
+    let activeStatuses = new Set(statusOrder);
+    let activeAsset = "ALL";
+    let tradeSearch = "";
+
+    renderAll();
+
+    function renderAll() {
+      renderSummary();
+      renderControls();
+      renderLegend();
+      renderMatrix();
+      renderErrorChart();
+      renderAssetChart();
+      renderFrontierTable();
+      renderInterpretation();
+    }
+
+    function renderSummary() {
+      const summary = DATA.summary || {};
+      const cftc = summary.compliance?.CFTC || {};
+      const emir = summary.compliance?.EMIR || {};
+      const metrics = [
+        [summary.total_trades ?? DATA.matrix.length, "Trades in report"],
+        [summary.novel_instruments ?? 0, "Novel instruments"],
+        [cftc.CONDITIONAL ?? 0, "CFTC conditional"],
+        [emir.NOT_APPLICABLE ?? 0, "EMIR not applicable"]
+      ];
+      document.getElementById("summaryMetrics").innerHTML = metrics.map(([value, label]) =>
+        `<div class="metric"><strong>${escapeHtml(String(value))}</strong><span>${escapeHtml(label)}</span></div>`
+      ).join("");
+    }
+
+    function renderControls() {
+      const statusControls = statusOrder.map(status => `
+        <label class="chip">
+          <input type="checkbox" data-status="${escapeHtml(status)}" ${activeStatuses.has(status) ? "checked" : ""}>
+          <span class="dot" style="background:${statusColors[status]}"></span>
+          <span>${escapeHtml(status)}</span>
+        </label>
+      `).join("");
+      const assetOptions = ["ALL", ...DATA.asset_classes].map(asset =>
+        `<option value="${escapeHtml(asset)}" ${asset === activeAsset ? "selected" : ""}>${asset === "ALL" ? "All asset classes" : escapeHtml(asset)}</option>`
+      ).join("");
+      document.getElementById("matrixControls").innerHTML = `
+        <span class="control-label">Status</span>
+        ${statusControls}
+        <span class="control-label">Asset</span>
+        <select id="assetFilter" aria-label="Filter by asset class">${assetOptions}</select>
+        <span class="control-label">Trade</span>
+        <input id="tradeSearch" type="search" placeholder="Search T026" aria-label="Search trade ID" value="${escapeHtml(tradeSearch)}">
+        <button id="resetFilters" type="button">Reset</button>
+      `;
+      document.querySelectorAll("#matrixControls input[data-status]").forEach(input => {
+        input.addEventListener("change", () => {
+          const status = input.getAttribute("data-status");
+          input.checked ? activeStatuses.add(status) : activeStatuses.delete(status);
+          renderMatrix();
+        });
+      });
+      document.getElementById("assetFilter").addEventListener("change", event => {
+        activeAsset = event.target.value;
+        renderMatrix();
+      });
+      document.getElementById("tradeSearch").addEventListener("input", event => {
+        tradeSearch = event.target.value.trim().toUpperCase();
+        renderMatrix();
+      });
+      document.getElementById("resetFilters").addEventListener("click", () => {
+        activeStatuses = new Set(statusOrder);
+        activeAsset = "ALL";
+        tradeSearch = "";
+        renderControls();
+        renderMatrix();
+      });
+    }
+
+    function renderLegend() {
+      document.getElementById("statusLegend").innerHTML = statusOrder.map(status => `
+        <span><span class="dot" style="background:${statusColors[status]}"></span>${escapeHtml(status)}</span>
+      `).join("");
+    }
+
+    function renderMatrix() {
+      const rows = filteredRows();
+      const header = `
+        <thead>
+          <tr>
+            <th>Trade</th>
+            <th>Asset Class</th>
+            ${DATA.regimes.map(regime => `<th>${escapeHtml(regime)}</th>`).join("")}
+          </tr>
+        </thead>
+      `;
+      const body = rows.length
+        ? rows.map(row => `
+          <tr>
+            <td class="trade-id">${escapeHtml(row.trade_id)}</td>
+            <td class="asset">${escapeHtml(row.asset_class)}</td>
+            ${DATA.regimes.map(regime => statusCell(row, regime)).join("")}
+          </tr>
+        `).join("")
+        : `<tr><td colspan="${DATA.regimes.length + 2}" class="muted">No trades match the current filters.</td></tr>`;
+      document.getElementById("matrixTable").innerHTML = `${header}<tbody>${body}</tbody>`;
+      document.querySelectorAll(".status-cell").forEach(button => {
+        button.addEventListener("click", () => {
+          const row = DATA.matrix[Number(button.dataset.rowIndex)];
+          const result = row.regimes[button.dataset.regime];
+          renderSelectedTrade(row, button.dataset.regime, result);
+        });
+      });
+    }
+
+    function statusCell(row, regime) {
+      const result = row.regimes[regime];
+      const status = result.status || "UNKNOWN";
+      const issueCount = (result.errors?.length || 0) + (result.warnings?.length || 0);
+      const issueText = issueCount ? `${issueCount} note${issueCount === 1 ? "" : "s"}` : "clear";
+      return `
+        <td>
+          <button class="status-cell status-${escapeHtml(status)}" data-row-index="${DATA.matrix.indexOf(row)}" data-regime="${escapeHtml(regime)}">
+            <span>${escapeHtml(status)}</span>
+            <small>${escapeHtml(issueText)}</small>
+          </button>
+        </td>
+      `;
+    }
+
+    function filteredRows() {
+      return DATA.matrix.filter(row => {
+        const assetMatches = activeAsset === "ALL" || row.asset_class === activeAsset;
+        const searchMatches = !tradeSearch || row.trade_id.toUpperCase().includes(tradeSearch);
+        const statusMatches = Object.values(row.regimes).some(result => activeStatuses.has(result.status));
+        return assetMatches && searchMatches && statusMatches;
+      });
+    }
+
+    function renderSelectedTrade(row, regime, result) {
+      const errors = listBlock("Errors", result.errors);
+      const warnings = listBlock("Warnings", result.warnings);
+      const failed = result.failed_fields?.length ? result.failed_fields.join(", ") : "None";
+      const panel = document.getElementById("selectedTradeDetails");
+      panel.classList.remove("muted");
+      panel.innerHTML = `
+        <h3>${escapeHtml(row.trade_id)} / ${escapeHtml(regime)} ${statusPill(result.status)}</h3>
+        <p><strong>Asset class:</strong> ${escapeHtml(row.asset_class)}</p>
+        <p><strong>Instrument:</strong> ${escapeHtml(row.instrument_type)} / ${escapeHtml(row.use_case)}</p>
+        <p><strong>UPI lookup:</strong> ${statusPill(row.upi_status)}</p>
+        <p><strong>Classification flag:</strong> ${escapeHtml(row.classification_flag)}</p>
+        <p><strong>Event description:</strong> ${escapeHtml(row.description || "None")}</p>
+        <p><strong>Failed fields:</strong> ${escapeHtml(failed)}</p>
+        <p><strong>Note:</strong> ${escapeHtml(result.note || "No note.")}</p>
+        ${row.upi_classification_note ? `<p><strong>UPI note:</strong> ${escapeHtml(row.upi_classification_note)}</p>` : ""}
+        ${errors}
+        ${warnings}
+      `;
+    }
+
+    function listBlock(title, items) {
+      if (!items || !items.length) {
+        return `<p class="muted">No ${title.toLowerCase()}.</p>`;
+      }
+      return `<h3>${escapeHtml(title)}</h3><ul>${items.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+    }
+
+    function renderErrorChart() {
+      const rows = DATA.error_frequency;
+      const trace = {
+        type: "bar",
+        orientation: "h",
+        x: rows.map(row => row.count),
+        y: rows.map(row => row.field),
+        text: rows.map(row => String(row.count)),
+        textposition: "outside",
+        cliponaxis: false,
+        marker: {color: "#ef5b5b"},
+        hovertemplate: "%{y}<br>Failures: %{x}<extra></extra>"
+      };
+      const layout = darkLayout({
+        margin: {l: 230, r: 70, t: 16, b: 48},
+        height: Math.max(430, rows.length * 42 + 110),
+        xaxis: {title: "Failure count", rangemode: "tozero", fixedrange: true},
+        yaxis: {autorange: "reversed", automargin: true}
+      });
+      Plotly.newPlot("errorChart", [trace], layout, {responsive: true, displayModeBar: false});
+    }
+
+    function renderAssetChart() {
+      const rows = DATA.asset_breakdown;
+      const assets = [...new Set(rows.map(row => row.asset_class))];
+      const traces = DATA.regimes.map(regime => {
+        const byAsset = Object.fromEntries(rows.filter(row => row.regime === regime).map(row => [row.asset_class, row]));
+        return {
+          type: "bar",
+          orientation: "h",
+          name: regime,
+          y: assets,
+          x: assets.map(asset => byAsset[asset]?.compliance_rate ?? 0),
+          text: assets.map(asset => {
+            const rate = byAsset[asset]?.compliance_rate;
+            return rate === null || rate === undefined ? "N/A" : `${Math.round(rate * 100)}%`;
+          }),
+          textposition: "outside",
+          cliponaxis: false,
+          customdata: assets.map(asset => byAsset[asset] || {}),
+          hovertemplate: "%{y} / " + regime + "<br>Compliance rate: %{x:.1%}<br>%{customdata.label}<extra></extra>"
+        };
+      });
+      const layout = darkLayout({
+        barmode: "group",
+        margin: {l: 150, r: 90, t: 56, b: 60},
+        height: 500,
+        xaxis: {title: "Compliance rate", tickformat: ".0%", range: [0, 1.15], fixedrange: true},
+        yaxis: {automargin: true},
+        legend: {orientation: "h", x: 0, y: 1.12}
+      });
+      Plotly.newPlot("assetChart", traces, layout, {responsive: true, displayModeBar: false});
+    }
+
+    function darkLayout(extra) {
+      return {
+        paper_bgcolor: "rgba(0,0,0,0)",
+        plot_bgcolor: "rgba(0,0,0,0)",
+        font: {color: "#d7deea", family: "Arial, Helvetica, sans-serif"},
+        hoverlabel: {align: "left", bgcolor: "#111827", bordercolor: "#4cc9a7", font: {color: "#eef2f7"}},
+        xaxis: {gridcolor: "#303846", zerolinecolor: "#303846", tickfont: {color: "#d7deea"}, titlefont: {color: "#d7deea"}},
+        yaxis: {gridcolor: "#303846", zerolinecolor: "#303846", tickfont: {color: "#d7deea"}, titlefont: {color: "#d7deea"}},
+        ...extra,
+        xaxis: {...{gridcolor: "#303846", zerolinecolor: "#303846", tickfont: {color: "#d7deea"}, titlefont: {color: "#d7deea"}}, ...(extra.xaxis || {})},
+        yaxis: {...{gridcolor: "#303846", zerolinecolor: "#303846", tickfont: {color: "#d7deea"}, titlefont: {color: "#d7deea"}}, ...(extra.yaxis || {})}
+      };
+    }
+
+    function renderFrontierTable() {
+      const rows = DATA.frontier;
+      const htmlRows = rows.map(row => {
+        const note = row.classification_note
+          ? `<tr class="frontier-note-row">
+               <td colspan="7"><strong>UPI classification note:</strong> ${escapeHtml(row.classification_note)}</td>
+             </tr>`
+          : "";
+        return `
+          <tr>
+            <td><strong>${escapeHtml(row.trade_id)}</strong></td>
+            <td>${escapeHtml(row.platform || "")}</td>
+            <td>${escapeHtml(row.event_type || "")}</td>
+            <td>${statusPill(row.cftc_status)}</td>
+            <td class="note">${escapeHtml(row.cftc_note || "")}</td>
+            <td>${statusPill(row.emir_status)}</td>
+            <td class="note">${escapeHtml(row.emir_note || "")}</td>
+          </tr>
+          ${note}
+        `;
+      }).join("");
+      document.getElementById("frontierTable").innerHTML = `
+        <div class="table-scroll">
+          <table class="frontier-table">
+            <thead>
+              <tr>
+                <th>Trade</th>
+                <th>Platform</th>
+                <th>Event Type</th>
+                <th>CFTC</th>
+                <th>CFTC Note</th>
+                <th>EMIR</th>
+                <th>EMIR Note</th>
+              </tr>
+            </thead>
+            <tbody>${htmlRows}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderInterpretation() {
+      document.getElementById("interpretation").innerHTML = DATA.interpretation.map(text =>
+        `<p>${escapeHtml(text)}</p>`
+      ).join("");
+    }
+
+    function statusPill(status) {
+      return `<span class="status-pill status-${escapeHtml(status || "UNKNOWN")}">${escapeHtml(status || "UNKNOWN")}</span>`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+  </script>
+</body>
+</html>

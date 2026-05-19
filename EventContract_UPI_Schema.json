@@ -1,0 +1,90 @@
+{
+  "AssetClass": "EventContract",
+  "InstrumentType": "BinaryEventContract",
+  "UseCase": [
+    "PoliticalOutcome",
+    "MacroeconomicOutcome",
+    "RegulatoryDecisionOutcome",
+    "ClimatePolicyOutcome",
+    "GeopoliticalOutcome"
+  ],
+  "Attributes": {
+    "EventType": {
+      "codeset": "EventTypeCode",
+      "comment": "Examples: ELECTION_OUTCOME, MACROECONOMIC_THRESHOLD, REGULATORY_DECISION, CLIMATE_POLICY_OUTCOME, GEOPOLITICAL_OUTCOME",
+      "required": true
+    },
+    "EventDescription": {
+      "type": "string",
+      "minLength": 20,
+      "maxLength": 280,
+      "pattern": "^[A-Za-z0-9 ,.;:%()/-]+$",
+      "source_validation": "Must be anchored to the same OfficialResolutionSource used to resolve the event outcome.",
+      "comment": "Plain-language event description. Length and character-set limits support repository search, deduplication, and manipulation review.",
+      "required": true
+    },
+    "EventJurisdiction": {
+      "codeset": "ISO3166Country",
+      "comment": "Jurisdiction whose institutions / decisions resolve the event. Distinct from PlatformJurisdiction.",
+      "required": true
+    },
+    "EventOfficialSource": {
+      "type": "string",
+      "comment": "Authoritative source whose release resolves the contract: BLS, Eurostat, ESMA, national election authority, IPCC, etc.",
+      "required": true
+    },
+    "EventObservationDate": {
+      "type": "date",
+      "comment": "Date on which the event is observed and the contract is resolvable. Distinct from settlement date.",
+      "required": true
+    },
+    "PayoutType": {
+      "enum": ["BinaryFixedPayout", "ScalarPayout"],
+      "required": true
+    },
+    "PayoutAmount": {
+      "type": "number",
+      "comment": "Per-contract payout if event resolves positive.",
+      "required": true
+    },
+    "SettlementCurrency": {
+      "codeset": "ISOCurrencyCode_or_ApprovedToken",
+      "comment": "Extends ISO 4217 with an approved-token codeset to capture USDC and similar stablecoin settlement legs.",
+      "required": true
+    },
+    "DeliveryType": {
+      "enum": ["CASH"],
+      "comment": "Binary event contracts settle through cash or token cash-equivalent payout rather than physical delivery.",
+      "required": true
+    },
+    "PlatformType": {
+      "enum": [
+        "CFTC_REGULATED_DCM",
+        "OFFSHORE_UNREGULATED",
+        "DECENTRALISED_BLOCKCHAIN_PLATFORM",
+        "EU_LICENSED_GAMING_OPERATOR"
+      ],
+      "comment": "Captures venue-choice dimension that drives regulatory arbitrage. Distinct from EventJurisdiction.",
+      "required": true
+    },
+    "HedgingPurposeDeclared": {
+      "enum": ["HEDGING", "SPECULATIVE", "MIXED"],
+      "comment": "Self-declared by reporting counterparty. Engine does not verify. Mis-declaration carries the same legal weight as other self-declared regulatory fields (e.g., EMIR clearing threshold flag).",
+      "required": true
+    }
+  },
+  "DesignNotes": [
+    "1. The schema describes the product, not the regulatory obligation. Whether an EventContract triggers an EMIR or CFTC reporting duty is a separate legal determination.",
+    "2. The schema treats event-based instruments as a first-class asset class, not as a subtype of the DSB 'Other' / Non-Standard template. The underlier of an event contract is not a price series; forcing it into 'Other' loses analytical resolution.",
+    "3. PlatformType is a structural field, not a derived one. The same economic exposure on a CFTC DCM (T026, T028) vs an offshore decentralised platform (T027) has materially different regulatory implications and the schema must capture this distinction at the UPI layer.",
+    "4. HedgingPurposeDeclared is self-declared. The engine cannot verify hedging intent; the schema documents what the reporter claims, leaves verification to supervisory review, and creates an auditable record.",
+    "5. SettlementCurrency permits an approved-token codeset alongside ISO 4217. The current ISO codeset cannot describe USDC, USDT, or other stablecoin settlement legs used by decentralised event-contract venues; without an extension, every such trade fails currency validation even when the contract is otherwise reportable.",
+    "6. EventJurisdiction and PlatformJurisdiction (via PlatformType) are deliberately separated. A German firm hedging a German election outcome on a US-regulated venue must be distinguishable at the UPI level from the same firm hedging the same outcome on an EU-licensed gaming operator."
+  ],
+  "ConsistencyWithDsbPrinciples": {
+    "ISO_4914_compliance": "Same hierarchical AssetClass/InstrumentType/UseCase structure as existing DSB templates.",
+    "Codeset_reuse": "Reuses ISOCurrencyCode, ISO3166Country where possible; only introduces new codesets (EventTypeCode) where existing ones cannot describe the product.",
+    "Multi_asset_support": "Does not require multi-asset extensions; event contracts are single-event-underlier instruments by construction.",
+    "OTC_ISIN_parent_child_relationship": "Each EventContract UPI may have many OTC ISIN children (one per specific event resolution window), consistent with the DSB UPI -> OTC ISIN hierarchy."
+  }
+}

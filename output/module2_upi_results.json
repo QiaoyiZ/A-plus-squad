@@ -1,0 +1,901 @@
+[
+  {
+    "trade_id": "T001",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Rates\\Rates.Swap.Fixed_Float.UPI.V1.json",
+    "matched_template": "Rates.Swap.Fixed_Float.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "DeliveryType",
+        "value": "PHYS",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalSchedule",
+        "value": "Constant",
+        "source": "default"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndexTermUnit",
+        "value": "MNTH",
+        "source": "dropped"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndexTermValue",
+        "value": 3,
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T002",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Credit\\Credit.Swap.Corporate.UPI.V1.json",
+    "matched_template": "Credit.Swap.Corporate.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "Underlying",
+        "value": {
+          "InstrumentLEI": "5299000J2N45DDNE4Y28"
+        },
+        "source": "inferred:reference_entity_lei"
+      },
+      {
+        "attribute": "DeliveryType",
+        "value": "OPTL",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalCurrency",
+        "value": "EUR",
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T003",
+    "status": "MATCHED",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Foreign_Exchange\\Foreign_Exchange.Forward.NDF.UPI.V1.json",
+    "matched_template": "Foreign_Exchange.Forward.NDF.UPI.V1",
+    "warnings": [],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed validation.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "OtherNotionalCurrency",
+        "value": "KRW",
+        "source": "inferred:underlying_currency_pair"
+      }
+    ]
+  },
+  {
+    "trade_id": "T004",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Equity\\Equity.Option.Single_Name.UPI.V1.json",
+    "matched_template": "Equity.Option.Single_Name.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType, OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "OptionType",
+        "value": "PUTO",
+        "source": "inferred:option_type+aliased:PUT"
+      },
+      {
+        "attribute": "DeliveryType",
+        "value": "CASH",
+        "source": "default"
+      },
+      {
+        "attribute": "OptionExerciseStyle",
+        "value": "EURO",
+        "source": "default"
+      },
+      {
+        "attribute": "ValuationMethodorTrigger",
+        "value": "Vanilla",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalCurrency",
+        "value": "USD",
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T005",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Rates\\Rates.Swap.Fixed_Float.UPI.V1.json",
+    "matched_template": "Rates.Swap.Fixed_Float.UPI.V1",
+    "warnings": [
+      "ReferenceRate uses legacy LIBOR reference rate GBP-LIBOR-BBA; codeset match retained, warning only.",
+      "Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "DeliveryType",
+        "value": "PHYS",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalSchedule",
+        "value": "Constant",
+        "source": "default"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndexTermUnit",
+        "value": "MNTH",
+        "source": "dropped"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndexTermValue",
+        "value": 6,
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T006",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Rates\\Rates.Swap.Basis.UPI.V1.json",
+    "matched_template": "Rates.Swap.Basis.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "DeliveryType",
+        "value": "PHYS",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalSchedule",
+        "value": "Constant",
+        "source": "default"
+      },
+      {
+        "attribute": "OtherLegReferenceRate",
+        "value": "EUR-EuroSTR",
+        "source": "aliased:EUR-ESTR"
+      }
+    ]
+  },
+  {
+    "trade_id": "T007",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Commodities\\Commodities.Swap.Single_Index.UPI.V1.json",
+    "matched_template": "Commodities.Swap.Single_Index.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "Underlying",
+        "value": {
+          "UnderlyingInstrumentIndexProp": "GOLD"
+        },
+        "source": "inferred:underlying_commodity"
+      },
+      {
+        "attribute": "BaseProduct",
+        "value": "METL",
+        "source": "inferred:underlying_commodity"
+      },
+      {
+        "attribute": "ReturnorPayoutTrigger",
+        "value": "Contract for Difference (CFD)",
+        "source": "default:template_title_heuristic"
+      },
+      {
+        "attribute": "DeliveryType",
+        "value": "CASH",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalCurrency",
+        "value": "XAU",
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T008",
+    "status": "VALIDATION_FAILED",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Rates\\Rates.Option.Swaption.UPI.V1.json",
+    "matched_template": "Rates.Option.Swaption.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType, OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [
+      "Missing required UPI attribute: UnderlyingInstrumentUPI.",
+      "OptionType='PAYER' is not one of ['CALL', 'OPTL', 'PUTO'].",
+      "JSON Schema: Attributes: 'UnderlyingInstrumentUPI' is a required property"
+    ],
+    "explanation": "Template matched, but one or more UPI attributes failed validation.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "DeliveryType",
+        "value": "CASH",
+        "source": "default"
+      },
+      {
+        "attribute": "OptionExerciseStyle",
+        "value": "EURO",
+        "source": "default"
+      },
+      {
+        "attribute": "ValuationMethodorTrigger",
+        "value": "Vanilla",
+        "source": "default"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndexTermUnit",
+        "value": "YEAR",
+        "source": "dropped"
+      },
+      {
+        "attribute": "ReferenceRate",
+        "value": "USD-SOFR-COMPOUND",
+        "source": "dropped"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndexTermValue",
+        "value": 10,
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T009",
+    "status": "VALIDATION_FAILED",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Foreign_Exchange\\Foreign_Exchange.Option.Vanilla_Option.UPI.V1.json",
+    "matched_template": "Foreign_Exchange.Option.Vanilla_Option.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType, OptionExerciseStyle); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [
+      "NotionalCurrency='INVALID_CCY' is not in codeset ISOCurrencyCode.json."
+    ],
+    "explanation": "Template matched, but one or more UPI attributes failed validation.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "OtherNotionalCurrency",
+        "value": "USD",
+        "source": "inferred:underlying_currency_pair"
+      },
+      {
+        "attribute": "DeliveryType",
+        "value": "PHYS",
+        "source": "default"
+      },
+      {
+        "attribute": "OptionExerciseStyle",
+        "value": "EURO",
+        "source": "default"
+      }
+    ]
+  },
+  {
+    "trade_id": "T010",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Credit\\Credit.Swap.Index.UPI.V1.json",
+    "matched_template": "Credit.Swap.Index.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (UnderlyingIssuerType, DeliveryType); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "Underlying",
+        "value": {
+          "UnderlyingInstrumentIndexProp": "CDX.NA.IG.43",
+          "UnderlyingInstrumentIndexTermValue": 0,
+          "UnderlyingInstrumentIndexTermUnit": "DAYS",
+          "UnderlyingCreditIndexSeries": 0,
+          "UnderlyingCreditIndexVersion": 0
+        },
+        "source": "inferred:underlying_index+default:credit_index_metadata"
+      },
+      {
+        "attribute": "UnderlyingIssuerType",
+        "value": "Corporate",
+        "source": "default"
+      },
+      {
+        "attribute": "DeliveryType",
+        "value": "OPTL",
+        "source": "default"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndex",
+        "value": "CDX.NA.IG.43",
+        "source": "dropped"
+      },
+      {
+        "attribute": "NotionalCurrency",
+        "value": "USD",
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T011",
+    "status": "VALIDATION_FAILED",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Rates\\Rates.Swap.Cross_Currency_Fixed_Float.UPI.V1.json",
+    "matched_template": "Rates.Swap.Cross_Currency_Fixed_Float.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [
+      "Missing required UPI attribute: ReferenceRateTermValue.",
+      "Missing required UPI attribute: ReferenceRateTermUnit.",
+      "JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property",
+      "JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property"
+    ],
+    "explanation": "Template matched, but one or more UPI attributes failed validation.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "DeliveryType",
+        "value": "PHYS",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalSchedule",
+        "value": "Constant",
+        "source": "default"
+      },
+      {
+        "attribute": "OtherLegReferenceRate",
+        "value": "JPY-TONA-OIS-COMPOUND",
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T012",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Equity\\Equity.Swap.Total_Return_Swap_Single_Index.UPI.V1.json",
+    "matched_template": "Equity.Swap.Total_Return_Swap_Single_Index.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "Underlying",
+        "value": {
+          "UnderlyingInstrumentIndexProp": "SPX"
+        },
+        "source": "inferred:underlying_index"
+      },
+      {
+        "attribute": "DeliveryType",
+        "value": "PHYS",
+        "source": "default"
+      },
+      {
+        "attribute": "ReferenceRateTermValue",
+        "value": 3,
+        "source": "dropped"
+      },
+      {
+        "attribute": "ReferenceRateTermUnit",
+        "value": "MNTH",
+        "source": "dropped"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndexTermUnit",
+        "value": "MNTH",
+        "source": "dropped"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndex",
+        "value": "SPX",
+        "source": "dropped"
+      },
+      {
+        "attribute": "ReferenceRate",
+        "value": "USD-SOFR-COMPOUND",
+        "source": "dropped"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndexTermValue",
+        "value": 3,
+        "source": "dropped"
+      },
+      {
+        "attribute": "NotionalCurrency",
+        "value": "USD",
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T013",
+    "status": "VALIDATION_FAILED",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Rates\\Rates.Swap.Inflation_Swap.UPI.V1.json",
+    "matched_template": "Rates.Swap.Inflation_Swap.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [
+      "Missing required UPI attribute: ReferenceRateTermValue.",
+      "Missing required UPI attribute: ReferenceRateTermUnit.",
+      "JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property",
+      "JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property"
+    ],
+    "explanation": "Template matched, but one or more UPI attributes failed validation.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "DeliveryType",
+        "value": "PHYS",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalSchedule",
+        "value": "Constant",
+        "source": "default"
+      },
+      {
+        "attribute": "ReferenceRate",
+        "value": "UK-RPI",
+        "source": "aliased:GBP-RPI"
+      }
+    ]
+  },
+  {
+    "trade_id": "T014",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Foreign_Exchange\\Foreign_Exchange.Swap.FX_Swap.UPI.V1.json",
+    "matched_template": "Foreign_Exchange.Swap.FX_Swap.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "OtherNotionalCurrency",
+        "value": "USD",
+        "source": "inferred:underlying_currency_pair"
+      },
+      {
+        "attribute": "DeliveryType",
+        "value": "PHYS",
+        "source": "default"
+      }
+    ]
+  },
+  {
+    "trade_id": "T015",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Rates\\Rates.Option.CapFloor.UPI.V1.json",
+    "matched_template": "Rates.Option.CapFloor.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "OptionType",
+        "value": "CALL",
+        "source": "inferred:use_case"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndex",
+        "value": "USD-SOFR-COMPOUND",
+        "source": "inferred:reference_rate"
+      },
+      {
+        "attribute": "DeliveryType",
+        "value": "CASH",
+        "source": "default"
+      },
+      {
+        "attribute": "ReferenceRateTermValue",
+        "value": 3,
+        "source": "dropped"
+      },
+      {
+        "attribute": "ReferenceRateTermUnit",
+        "value": "MNTH",
+        "source": "dropped"
+      },
+      {
+        "attribute": "ReferenceRate",
+        "value": "USD-SOFR-COMPOUND",
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T016",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Equity\\Equity.Swap.Parameter_Return_Variance_Single_Index.UPI.V1.json",
+    "matched_template": "Equity.Swap.Parameter_Return_Variance_Single_Index.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "Underlying",
+        "value": {
+          "UnderlyingInstrumentISIN": "DE0008469008"
+        },
+        "source": "inferred:underlying_isin"
+      },
+      {
+        "attribute": "DeliveryType",
+        "value": "PHYS",
+        "source": "default"
+      },
+      {
+        "attribute": "UnderlyingInstrumentISIN",
+        "value": "DE0008469008",
+        "source": "dropped"
+      },
+      {
+        "attribute": "NotionalCurrency",
+        "value": "EUR",
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T017",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Credit\\Credit.Swap.Sovereign.UPI.V1.json",
+    "matched_template": "Credit.Swap.Sovereign.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "Underlying",
+        "value": {
+          "InstrumentLEI": "549300MLUDYVRQOOXS22"
+        },
+        "source": "inferred:reference_entity_lei"
+      },
+      {
+        "attribute": "DeliveryType",
+        "value": "OPTL",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalCurrency",
+        "value": "USD",
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T018",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Rates\\Rates.Swap.Fixed_Float_OIS.UPI.V1.json",
+    "matched_template": "Rates.Swap.Fixed_Float_OIS.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "DeliveryType",
+        "value": "PHYS",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalSchedule",
+        "value": "Constant",
+        "source": "default"
+      },
+      {
+        "attribute": "ReferenceRate",
+        "value": "EUR-EuroSTR",
+        "source": "aliased:EUR-ESTR"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndexTermUnit",
+        "value": "DAYS",
+        "source": "dropped"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndexTermValue",
+        "value": 1,
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T019",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Commodities\\Commodities.Option.Single_Index.UPI.V1.json",
+    "matched_template": "Commodities.Option.Single_Index.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (OptionExerciseStyle, ValuationMethodorTrigger); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "Underlying",
+        "value": {
+          "UnderlyingInstrumentIndexProp": "WTI_CRUDE"
+        },
+        "source": "inferred:underlying_commodity"
+      },
+      {
+        "attribute": "BaseProduct",
+        "value": "NRGY",
+        "source": "inferred:underlying_commodity"
+      },
+      {
+        "attribute": "OptionExerciseStyle",
+        "value": "EURO",
+        "source": "default"
+      },
+      {
+        "attribute": "ValuationMethodorTrigger",
+        "value": "Vanilla",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalCurrency",
+        "value": "USD",
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T020",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Foreign_Exchange\\Foreign_Exchange.Option.Barrier_Option.UPI.V1.json",
+    "matched_template": "Foreign_Exchange.Option.Barrier_Option.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (SettlementCurrency, DeliveryType, OptionExerciseStyle); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "OtherNotionalCurrency",
+        "value": "EUR",
+        "source": "inferred:underlying_currency_pair"
+      },
+      {
+        "attribute": "SettlementCurrency",
+        "value": "USD",
+        "source": "default"
+      },
+      {
+        "attribute": "DeliveryType",
+        "value": "CASH",
+        "source": "default"
+      },
+      {
+        "attribute": "OptionExerciseStyle",
+        "value": "EURO",
+        "source": "default"
+      }
+    ]
+  },
+  {
+    "trade_id": "T021",
+    "status": "VALIDATION_FAILED",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Rates\\Rates.Swap.Fixed_Float.UPI.V1.json",
+    "matched_template": "Rates.Swap.Fixed_Float.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [
+      "Missing required UPI attribute: ReferenceRateTermValue.",
+      "Missing required UPI attribute: ReferenceRateTermUnit.",
+      "JSON Schema: Attributes: 'ReferenceRateTermUnit' is a required property",
+      "JSON Schema: Attributes: 'ReferenceRateTermValue' is a required property"
+    ],
+    "explanation": "Template matched, but one or more UPI attributes failed validation.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "DeliveryType",
+        "value": "PHYS",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalSchedule",
+        "value": "Constant",
+        "source": "default"
+      }
+    ]
+  },
+  {
+    "trade_id": "T022",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Credit\\Credit.Swap.ABS.UPI.V1.json",
+    "matched_template": "Credit.Swap.ABS.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (UnderlyingIssuerType, DeliveryType); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "Underlying",
+        "value": {
+          "InstrumentISIN": "US05584PAA72"
+        },
+        "source": "inferred:reference_entity_isin"
+      },
+      {
+        "attribute": "UnderlyingIssuerType",
+        "value": "Corporate",
+        "source": "default"
+      },
+      {
+        "attribute": "DeliveryType",
+        "value": "OPTL",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalCurrency",
+        "value": "USD",
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T023",
+    "status": "MATCHED",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Equity\\Equity.Forward.Price_Return_Basic_Performance_Single_Name.UPI.V1.json",
+    "matched_template": "Equity.Forward.Price_Return_Basic_Performance_Single_Name.UPI.V1",
+    "warnings": [],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed validation.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "ReturnorPayoutTrigger",
+        "value": "Forward price of underlying instrument",
+        "source": "default:template_title_heuristic"
+      },
+      {
+        "attribute": "NotionalCurrency",
+        "value": "SGD",
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T024",
+    "status": "MATCHED_WITH_WARNINGS",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Rates\\Rates.Swap.Fixed_Float.UPI.V1.json",
+    "matched_template": "Rates.Swap.Fixed_Float.UPI.V1",
+    "warnings": [
+      "Applied default values for required template attributes (DeliveryType, NotionalSchedule); trade did not provide these. See derived_fields for the audit trail."
+    ],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed with warnings.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "DeliveryType",
+        "value": "PHYS",
+        "source": "default"
+      },
+      {
+        "attribute": "NotionalSchedule",
+        "value": "Constant",
+        "source": "default"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndexTermUnit",
+        "value": "MNTH",
+        "source": "dropped"
+      },
+      {
+        "attribute": "UnderlyingInstrumentIndexTermValue",
+        "value": 3,
+        "source": "dropped"
+      }
+    ]
+  },
+  {
+    "trade_id": "T025",
+    "status": "MATCHED",
+    "template_path": "data\\product_definitions\\PROD\\OTC-Products\\UPI\\Foreign_Exchange\\Foreign_Exchange.Forward.Forward.UPI.V1.json",
+    "matched_template": "Foreign_Exchange.Forward.Forward.UPI.V1",
+    "warnings": [],
+    "errors": [],
+    "explanation": "Template matched and required attributes passed validation.",
+    "classification_note": null,
+    "derived_fields": [
+      {
+        "attribute": "OtherNotionalCurrency",
+        "value": "USD",
+        "source": "inferred:underlying_currency_pair"
+      }
+    ]
+  },
+  {
+    "trade_id": "T026",
+    "status": "NO_PRODUCT_DEFINITION",
+    "template_path": null,
+    "matched_template": null,
+    "warnings": [],
+    "errors": [],
+    "explanation": "EventContract / prediction market contracts are outside the current ANNA-DSB OTC product taxonomy. The DSB UPI library covers conventional Rates, Credit, Foreign_Exchange, Equity, Commodities, and Other OTC templates, but it does not provide an EventContract template for binary political, macro, or regulatory outcomes.",
+    "classification_note": "Instrument type 'BinaryEventContract' under asset class 'EventContract' has no product definition in the ANNA-DSB UPI library. This reflects the current regulatory classification of prediction and event contracts as outside the OTC derivatives taxonomy in most jurisdictions. Refer to Module 4 for classification analysis.",
+    "derived_fields": []
+  },
+  {
+    "trade_id": "T027",
+    "status": "NO_PRODUCT_DEFINITION",
+    "template_path": null,
+    "matched_template": null,
+    "warnings": [],
+    "errors": [],
+    "explanation": "EventContract / prediction market contracts are outside the current ANNA-DSB OTC product taxonomy. The DSB UPI library covers conventional Rates, Credit, Foreign_Exchange, Equity, Commodities, and Other OTC templates, but it does not provide an EventContract template for binary political, macro, or regulatory outcomes.",
+    "classification_note": "Instrument type 'BinaryEventContract' under asset class 'EventContract' has no product definition in the ANNA-DSB UPI library. This reflects the current regulatory classification of prediction and event contracts as outside the OTC derivatives taxonomy in most jurisdictions. Refer to Module 4 for classification analysis.",
+    "derived_fields": []
+  },
+  {
+    "trade_id": "T028",
+    "status": "NO_PRODUCT_DEFINITION",
+    "template_path": null,
+    "matched_template": null,
+    "warnings": [],
+    "errors": [],
+    "explanation": "EventContract / prediction market contracts are outside the current ANNA-DSB OTC product taxonomy. The DSB UPI library covers conventional Rates, Credit, Foreign_Exchange, Equity, Commodities, and Other OTC templates, but it does not provide an EventContract template for binary political, macro, or regulatory outcomes.",
+    "classification_note": "Instrument type 'BinaryEventContract' under asset class 'EventContract' has no product definition in the ANNA-DSB UPI library. This reflects the current regulatory classification of prediction and event contracts as outside the OTC derivatives taxonomy in most jurisdictions. Refer to Module 4 for classification analysis.",
+    "derived_fields": []
+  }
+]
