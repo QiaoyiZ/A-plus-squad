@@ -1,8 +1,11 @@
 # OTC Derivatives Compliance Engine
 
 Zhou Qiaoyi G2505225E qiaoyi001@e.ntu.edu.sg
+
 Wang Zhen G2508551D zhen014@e.ntu.edu.sg
+
 Xie Jiatong G2508551D xiej0030@e.ntu.edu.sg
+
 Wong Joon Hoong G2505242K jwong187@e.ntu.edu.sg
 
 Google Drive: https://drive.google.com/drive/u/4/folders/1rPpc-ih9DQZHRgJgYdt1QheDSwo9RU0M
